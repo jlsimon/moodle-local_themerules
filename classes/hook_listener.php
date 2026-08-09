@@ -1,0 +1,59 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Tier A integration point (see DECISIONS.md "Phase 2"): listens on
+ *
+ * @package    local_themerules
+ * @copyright  2026 Jose Luis Simon
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_themerules;
+
+use local_themerules\local\engine\fact_provider;
+use local_themerules\local\engine\theme_resolution;
+
+/**
+ * Tier A integration point (see DECISIONS.md "Phase 2"): listens on
+ * \core\hook\after_config, the earliest point in the request lifecycle
+ * where $PAGE exists and $USER/$SESSION are populated, but before any real
+ * course is known. Runs on every request, with user/cohort facts only.
+ *
+ * On requests where require_login($course) later runs with a real course,
+ * lib.php's local_themerules_after_require_login() (Tier B) re-resolves
+ * with full course/category facts and overrides the decision made here -
+ * it is a strict superset of what this listener can see, so it always wins
+ * when it fires.
+ *
+ * $PAGE->force_theme() was tried first and rejected: at after_config time
+ * $PAGE->course has not been set yet (require_login() runs later, inside
+ * the page script, and calls moodle_page::set_course(), which itself calls
+ * ensure_theme_not_set()). Locking the theme this early with force_theme()
+ * made every later require_login($course) call throw a coding_exception
+ * ("The theme has already been set up for this page ready for output"),
+ * breaking virtually every authenticated page. Confirmed live against the
+ * test platform - see DECISIONS.md.
+ */
+class hook_listener {
+    public static function after_config(\core\hook\after_config $hook): void {
+        if (CLI_SCRIPT || (defined('WS_SERVER') && WS_SERVER) || during_initial_install()) {
+            return;
+        }
+
+        theme_resolution::apply(fact_provider::create_for_current_user());
+    }
+}

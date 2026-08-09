@@ -1,0 +1,115 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Builds an evaluation_context from Moodle data. See SPECIFICATIONS.md section 11.
+ *
+ * @package    local_themerules
+ * @copyright  2026 Jose Luis Simon
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_themerules\local\engine;
+
+/**
+ * Builds an evaluation_context from Moodle data. See SPECIFICATIONS.md section 11.
+ *
+ * Two entry points, matching the two integration tiers documented in DECISIONS.md
+ * "Phase 2": create_for_current_user() is usable everywhere (no course required),
+ * create_for_course() additionally resolves real course/category facts and is only
+ * called where a real course is actually known (see lib.php's
+ * local_themerules_after_require_login()).
+ */
+class fact_provider {
+    /**
+     * User + cohort facts only. Safe to call before any course is known.
+     */
+    public static function create_for_current_user(): evaluation_context {
+        global $USER;
+
+        return self::create_for_user_and_course((int) ($USER->id ?? 0), null);
+    }
+
+    /**
+     * Full facts, including the real course/category. Only call this once the real
+     * course for the current page is known (i.e. after require_login($course)).
+     */
+    public static function create_for_course(int $userid, \stdClass $course): evaluation_context {
+        return self::create_for_user_and_course($userid, $course);
+    }
+
+    /**
+     * General-purpose entry point, also used by the simulator (section 31) to build a
+     * context for an arbitrary user/course pair rather than the current session's.
+     */
+    public static function create_for_user_and_course(int $userid, ?\stdClass $course): evaluation_context {
+        if ($course === null) {
+            return new evaluation_context($userid, null, null, [], self::get_cohort_ids($userid));
+        }
+
+        $categorypath = self::get_category_path((int) ($course->category ?? 0));
+        $coursecategoryid = empty($categorypath) ? null : end($categorypath);
+
+        return new evaluation_context(
+            $userid,
+            (int) $course->id,
+            $coursecategoryid,
+            $categorypath,
+            self::get_cohort_ids($userid)
+        );
+    }
+
+    /**
+     * The ids of every cohort the given user is a member of.
+     *
+     * @return int[]
+     */
+    private static function get_cohort_ids(int $userid): array {
+        global $DB;
+
+        if (empty($userid)) {
+            return [];
+        }
+
+        return array_values(array_map('intval', $DB->get_fieldset_select(
+            'cohort_members',
+            'cohortid',
+            'userid = :userid',
+            ['userid' => $userid]
+        )));
+    }
+
+    /**
+     * Category id and all its ancestors, root first, e.g. [1, 5, 12] for
+     * "FUNDAE > Administration > IT" (SPECIFICATIONS.md section 12).
+     *
+     * @return int[]
+     */
+    private static function get_category_path(int $categoryid): array {
+        if (empty($categoryid)) {
+            return [];
+        }
+
+        $category = \core_course_category::get($categoryid, IGNORE_MISSING, true);
+        if (!$category) {
+            return [];
+        }
+
+        $path = trim($category->path, '/');
+
+        return $path === '' ? [] : array_map('intval', explode('/', $path));
+    }
+}

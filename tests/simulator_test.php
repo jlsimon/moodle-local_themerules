@@ -1,0 +1,148 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Tests.
+ *
+ * @package    local_themerules
+ * @copyright  2026 Jose Luis Simon
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_themerules;
+
+use local_themerules\local\diagnostics\simulator;
+use local_themerules\local\engine\fact_provider;
+
+/**
+ * Unit tests for simulator.
+ */
+#[\PHPUnit\Framework\Attributes\CoversClass(simulator::class)]
+final class simulator_test extends \advanced_testcase {
+    protected function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+    }
+
+    private function create_rule(array $overrides = []): int {
+        global $DB, $USER;
+
+        $now = time();
+        $record = array_merge([
+            'name' => 'Simulated rule',
+            'enabled' => 1,
+            'priority' => 100,
+            'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
+                'operator' => 'is', 'value' => 123]),
+            'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),
+            'timestart' => 0,
+            'timeend' => 0,
+            'sortorder' => 0,
+            'timecreated' => $now,
+            'timemodified' => $now,
+            'usermodified' => $USER->id,
+        ], $overrides);
+
+        return (int) $DB->insert_record('local_themerules_rule', (object) $record);
+    }
+
+    public function test_matching_rule_is_traced_true_with_selected_theme(): void {
+        $this->create_rule();
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(123, null));
+
+        $this->assertSame('boost', $result->selectedtheme);
+        $this->assertCount(1, $result->ruletraces);
+        $this->assertTrue($result->ruletraces[0]->matched);
+        $this->assertSame('boost', $result->ruletraces[0]->theme);
+        $this->assertNotEmpty($result->ruletraces[0]->conditionlines);
+        $this->assertTrue($result->ruletraces[0]->conditionlines[0]['result']);
+    }
+
+    public function test_non_matching_rule_is_traced_false_with_no_theme(): void {
+        $this->create_rule();
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(456, null));
+
+        $this->assertNull($result->selectedtheme);
+        $this->assertFalse($result->ruletraces[0]->matched);
+        $this->assertNull($result->ruletraces[0]->theme);
+        $this->assertFalse($result->ruletraces[0]->conditionlines[0]['result']);
+    }
+
+    public function test_first_matching_rule_by_priority_wins_and_stops_selecting(): void {
+        $this->create_rule(['name' => 'Low', 'priority' => 10,
+            'actionjson' => json_encode(['type' => 'theme', 'theme' => 'classic'])]);
+        $this->create_rule(['name' => 'High', 'priority' => 100,
+            'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost'])]);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(123, null));
+
+        $this->assertSame('boost', $result->selectedtheme);
+        $this->assertCount(2, $result->ruletraces);
+        // Both rules matched (both traced as TRUE for transparency), but only the
+        // higher-priority one's theme was actually selected.
+        $this->assertTrue($result->ruletraces[0]->matched); // High, evaluated first.
+        $this->assertSame('boost', $result->ruletraces[0]->theme);
+        $this->assertTrue($result->ruletraces[1]->matched); // Low, still shown as matched...
+        $this->assertNull($result->ruletraces[1]->theme); // ...but did not win.
+    }
+
+    public function test_disabled_rule_does_not_appear_in_trace(): void {
+        $this->create_rule(['enabled' => 0]);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(123, null));
+
+        $this->assertCount(0, $result->ruletraces);
+        $this->assertNull($result->selectedtheme);
+    }
+
+    /**
+     * SPECIFICATIONS.md section 50: a rule referencing a deleted entity must not break the
+     * simulator; it should indicate the reference could not be resolved.
+     */
+    public function test_condition_referencing_a_deleted_user_shows_not_found(): void {
+        $this->create_rule([
+            'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
+                'operator' => 'is', 'value' => 999999]),
+        ]);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(123, null));
+
+        $this->assertStringContainsString('not found', $result->ruletraces[0]->conditionlines[0]['text']);
+    }
+
+    public function test_corrupt_rule_is_traced_as_an_error_not_a_fatal(): void {
+        $this->create_rule(['expressionjson' => '{not valid']);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(123, null));
+
+        $this->assertFalse($result->ruletraces[0]->matched);
+        $this->assertNull($result->selectedtheme);
+    }
+
+    public function test_facts_include_resolved_course_and_category_names(): void {
+        $category = $this->getDataGenerator()->create_category(['name' => 'Test Category']);
+        $course = $this->getDataGenerator()->create_course(['category' => $category->id, 'fullname' => 'Test Course']);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(123, $course));
+
+        $facts = array_values($result->facts);
+        $this->assertTrue((bool) array_filter($facts, fn ($v) => str_contains($v, 'Test Course')));
+        $this->assertTrue((bool) array_filter($facts, fn ($v) => str_contains($v, 'Test Category')));
+    }
+}

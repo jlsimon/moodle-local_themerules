@@ -1,0 +1,209 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Builds a human-readable trace of how the resolver would decide the theme for a
+ *
+ * @package    local_themerules
+ * @copyright  2026 Jose Luis Simon
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_themerules\local\diagnostics;
+
+use local_themerules\local\action\action_registry;
+use local_themerules\local\condition\condition_registry;
+use local_themerules\local\engine\evaluation_context;
+use local_themerules\local\engine\expression_parser;
+use local_themerules\local\repository\rule_repository;
+
+/**
+ * Builds a human-readable trace of how the resolver would decide the theme for a
+ * given user/course, for the "Simulate" admin page. See SPECIFICATIONS.md
+ * section 31.
+ *
+ * Deliberately separate from engine\resolver/evaluator rather than adding a trace
+ * mode to them: this keeps the hot runtime path (resolver, run on every page load)
+ * free of any diagnostics-only branching, at the cost of evaluating each condition
+ * a second time here. That is an acceptable trade-off because the simulator is an
+ * admin-only, on-demand tool, never called from the request path that resolves the
+ * live theme (SPECIFICATIONS.md section 76: runtime evaluation must stay cheap and
+ * deterministic; this class does not run there).
+ */
+class simulator {
+    public static function run(evaluation_context $context, ?rule_repository $repository = null): simulation_result {
+        $repository ??= new rule_repository();
+        $now = time();
+        $selectedtheme = null;
+        $traces = [];
+
+        foreach ($repository->get_enabled_rules_ordered() as $rule) {
+            if (!$rule->is_active_at($now)) {
+                continue;
+            }
+
+            try {
+                $expression = (new expression_parser())->parse($rule->get_expression_json());
+                $traced = self::trace_node($expression, $context);
+
+                $theme = null;
+                if ($traced['result'] && $selectedtheme === null) {
+                    $actionconfig = json_decode($rule->get_action_json(), true);
+                    if (
+                        is_array($actionconfig) && !empty($actionconfig['type'])
+                            && action_registry::has($actionconfig['type'])
+                    ) {
+                        $theme = action_registry::get($actionconfig['type'])->apply($actionconfig, $context);
+                        if ($theme !== null) {
+                            $selectedtheme = $theme;
+                        }
+                    }
+                }
+
+                $traces[] = new rule_trace(
+                    $rule->get_id(),
+                    $rule->get_name(),
+                    $rule->get_priority(),
+                    $traced['result'],
+                    $traced['lines'],
+                    $theme
+                );
+            } catch (\Throwable $e) {
+                $traces[] = new rule_trace(
+                    $rule->get_id(),
+                    $rule->get_name(),
+                    $rule->get_priority(),
+                    false,
+                    [['text' => get_string('trace_error', 'local_themerules', $e->getMessage()), 'result' => false]],
+                    null
+                );
+            }
+        }
+
+        return new simulation_result(self::describe_facts($context), $traces, $selectedtheme);
+    }
+
+    /**
+     * Recursively evaluates one expression node while recording a flat trace line per condition.
+     *
+     * @return array{result: bool, lines: array{text: string, result: bool}[]}
+     */
+    private static function trace_node(array $node, evaluation_context $context): array {
+        if ($node['type'] === 'condition') {
+            $result = condition_registry::get($node['condition'])->evaluate($node, $context);
+            return ['result' => $result, 'lines' => [
+                ['text' => self::describe_condition($node), 'result' => $result],
+            ]];
+        }
+
+        $childresults = array_map(fn (array $child) => self::trace_node($child, $context), $node['children']);
+        $result = $node['operator'] === 'and'
+            ? array_reduce($childresults, fn (bool $carry, array $c) => $carry && $c['result'], true)
+            : array_reduce($childresults, fn (bool $carry, array $c) => $carry || $c['result'], false);
+
+        $lines = [];
+        foreach ($childresults as $child) {
+            $lines = array_merge($lines, $child['lines']);
+        }
+
+        return ['result' => $result, 'lines' => $lines];
+    }
+
+    private static function describe_condition(array $node): string {
+        $value = (int) ($node['value'] ?? 0);
+
+        switch ($node['condition']) {
+            case 'user':
+                return get_string('trace_user', 'local_themerules', self::user_name($value));
+
+            case 'course':
+                return get_string('trace_course', 'local_themerules', self::course_name($value));
+
+            case 'coursecategory':
+                $text = get_string('trace_coursecategory', 'local_themerules', self::category_name($value));
+                if (!empty($node['includechildren'])) {
+                    $text .= ' ' . get_string('trace_includingdescendants', 'local_themerules');
+                }
+                return $text;
+
+            case 'cohort':
+                return get_string('trace_cohort', 'local_themerules', (object) [
+                    'verb' => get_string(($node['operator'] ?? 'member') === 'member'
+                        ? 'trace_member' : 'trace_notmember', 'local_themerules'),
+                    'name' => self::cohort_name($value),
+                ]);
+
+            default:
+                return $node['condition'] . ' ' . $value;
+        }
+    }
+
+    private static function describe_facts(evaluation_context $context): array {
+        global $DB;
+
+        $facts = [
+            get_string('trace_fact_user', 'local_themerules') => self::user_name($context->get_userid()),
+        ];
+
+        if ($context->get_courseid() !== null) {
+            $facts[get_string('trace_fact_course', 'local_themerules')] = self::course_name($context->get_courseid());
+        }
+        if ($context->get_coursecategorypath() !== []) {
+            $names = array_map([self::class, 'category_name'], $context->get_coursecategorypath());
+            $facts[get_string('trace_fact_category', 'local_themerules')] = implode(' > ', $names);
+        }
+
+        $cohortids = $context->get_cohortids();
+        $facts[get_string('trace_fact_cohorts', 'local_themerules')] = empty($cohortids)
+            ? get_string('trace_fact_none', 'local_themerules')
+            : implode(', ', array_map([self::class, 'cohort_name'], $cohortids));
+
+        return $facts;
+    }
+
+    private static function user_name(int $id): string {
+        global $DB;
+        $fields = 'id, ' . implode(', ', \core_user\fields::get_name_fields());
+        $user = $DB->get_record('user', ['id' => $id], $fields, IGNORE_MISSING);
+        return $user ? fullname($user) . " (id {$id})" : self::not_found($id);
+    }
+
+    private static function course_name(int $id): string {
+        global $DB;
+        $course = $DB->get_record('course', ['id' => $id], 'id, fullname', IGNORE_MISSING);
+        return $course ? format_string($course->fullname) . " (id {$id})" : self::not_found($id);
+    }
+
+    private static function category_name(int $id): string {
+        global $DB;
+        $category = $DB->get_record('course_categories', ['id' => $id], 'id, name', IGNORE_MISSING);
+        return $category ? format_string($category->name) . " (id {$id})" : self::not_found($id);
+    }
+
+    private static function cohort_name(int $id): string {
+        global $DB;
+        $cohort = $DB->get_record('cohort', ['id' => $id], 'id, name', IGNORE_MISSING);
+        return $cohort ? format_string($cohort->name) . " (id {$id})" : self::not_found($id);
+    }
+
+    /**
+     * SPECIFICATIONS.md section 50: a reference to a deleted entity must not break anything,
+     * and the admin-facing surface (here, the simulator) should indicate it is broken.
+     */
+    private static function not_found(int $id): string {
+        return get_string('trace_notfound', 'local_themerules', $id);
+    }
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/themerules/db" VERSION="20260808001" COMMENT="XMLDB file for local_themerules"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
+  <TABLES>
+    <TABLE NAME="local_themerules_rule" COMMENT="Theme selection rules: logical condition tree -> theme action">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" DEFAULT="0"/>
+        <FIELD NAME="priority" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0"/>
+        <FIELD NAME="expressionjson" TYPE="text" NOTNULL="true" SEQUENCE="false"
+            COMMENT="Logical condition tree, JSON. See SPECIFICATIONS.md section 8."/>
+        <FIELD NAME="actionjson" TYPE="text" NOTNULL="true" SEQUENCE="false"
+            COMMENT="Action definition, JSON. See SPECIFICATIONS.md section 8."/>
+        <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0"
+            COMMENT="0 = no start restriction"/>
+        <FIELD NAME="timeend" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0"
+            COMMENT="0 = no end restriction"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="usermodifiedfk" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="enabledidx" UNIQUE="false" FIELDS="enabled"/>
+        <INDEX NAME="priorityidx" UNIQUE="false" FIELDS="priority"/>
+        <INDEX NAME="timestartidx" UNIQUE="false" FIELDS="timestart"/>
+        <INDEX NAME="timeendidx" UNIQUE="false" FIELDS="timeend"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
