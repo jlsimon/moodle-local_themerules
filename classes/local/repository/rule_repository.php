@@ -33,9 +33,10 @@ use local_themerules\local\entity\rule;
  */
 class rule_repository {
     /**
-     * Enabled rules, highest priority first (SPECIFICATIONS.md section 7).
-     * Backed by the "rules" MUC cache (section 28) - see cache_manager for why only the raw
-     * records are cached, not parsed expression trees.
+     * Enabled rules, evaluated in list order - the rule shown first (lowest sortorder) is
+     * evaluated first, per SPECIFICATIONS.md section 7. Backed by the "rules" MUC cache
+     * (section 28) - see cache_manager for why only the raw records are cached, not parsed
+     * expression trees.
      *
      * @return rule[]
      */
@@ -44,7 +45,7 @@ class rule_repository {
 
         if ($records === null) {
             global $DB;
-            $records = array_values($DB->get_records('local_themerules_rule', ['enabled' => 1], 'priority DESC, id ASC'));
+            $records = array_values($DB->get_records('local_themerules_rule', ['enabled' => 1], 'sortorder ASC, id ASC'));
             cache_manager::set_enabled_rule_records($records);
         }
 
@@ -60,7 +61,7 @@ class rule_repository {
     public function get_all_records_ordered(): array {
         global $DB;
 
-        return $DB->get_records('local_themerules_rule', null, 'priority DESC, id ASC');
+        return $DB->get_records('local_themerules_rule', null, 'sortorder ASC, id ASC');
     }
 
     /**
@@ -81,6 +82,10 @@ class rule_repository {
         $data->timecreated = $now;
         $data->timemodified = $now;
         $data->usermodified = $USER->id;
+        // Always appended at the end, regardless of what the caller passed - sortorder is an
+        // ordering concern this repository owns (see move_up()/move_down()), not something a
+        // caller (or duplicate(), cloning a source row) should set directly.
+        $data->sortorder = $this->next_sortorder();
 
         $id = (int) $DB->insert_record('local_themerules_rule', $data);
         cache_manager::purge();
@@ -162,5 +167,69 @@ class rule_repository {
         $copy->enabled = 0;
 
         return $this->create($copy);
+    }
+
+    /**
+     * Moves a rule one position earlier in the evaluation order (swaps sortorder with its
+     * immediate predecessor). A no-op if the rule is already first, or does not exist.
+     */
+    public function move_up(int $id): void {
+        $this->swap_with_neighbour($id, -1);
+    }
+
+    /**
+     * Moves a rule one position later in the evaluation order. A no-op if the rule is already
+     * last, or does not exist.
+     */
+    public function move_down(int $id): void {
+        $this->swap_with_neighbour($id, 1);
+    }
+
+    /**
+     * Swaps the given rule's sortorder with the rule $offset positions away in the current list
+     * order. Reads the whole ordered list rather than computing a neighbour via a MIN/MAX query
+     * on sortorder directly, so this stays correct even if sortorder values ever have gaps or
+     * (briefly, mid-migration) duplicates - list *position* is always well-defined, raw sortorder
+     * values are only ever a means to encode it.
+     */
+    private function swap_with_neighbour(int $id, int $offset): void {
+        global $DB;
+
+        $ordered = array_values($this->get_all_records_ordered());
+
+        $index = null;
+        foreach ($ordered as $i => $record) {
+            if ((int) $record->id === $id) {
+                $index = $i;
+                break;
+            }
+        }
+
+        if ($index === null) {
+            return;
+        }
+
+        $targetindex = $index + $offset;
+        if ($targetindex < 0 || $targetindex >= count($ordered)) {
+            return;
+        }
+
+        $current = $ordered[$index];
+        $neighbour = $ordered[$targetindex];
+
+        $DB->set_field('local_themerules_rule', 'sortorder', $neighbour->sortorder, ['id' => $current->id]);
+        $DB->set_field('local_themerules_rule', 'sortorder', $current->sortorder, ['id' => $neighbour->id]);
+        cache_manager::purge();
+    }
+
+    /**
+     * The sortorder value that places a new rule after every existing one.
+     */
+    private function next_sortorder(): int {
+        global $DB;
+
+        $max = $DB->get_field_sql('SELECT MAX(sortorder) FROM {local_themerules_rule}');
+
+        return $max === null ? 0 : ((int) $max) + 1;
     }
 }

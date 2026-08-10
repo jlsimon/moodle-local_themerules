@@ -57,6 +57,11 @@ if ($action !== '' && $id > 0) {
         redirect($url, get_string('notify_duplicated', 'local_themerules'), null, \core\output\notification::NOTIFY_SUCCESS);
     }
 
+    if ($action === 'moveup' || $action === 'movedown') {
+        $action === 'moveup' ? $repository->move_up($id) : $repository->move_down($id);
+        redirect($url, get_string('notify_reordered', 'local_themerules'), null, \core\output\notification::NOTIFY_SUCCESS);
+    }
+
     if ($action === 'delete') {
         $rule = $repository->get_record($id);
 
@@ -106,7 +111,6 @@ $table = new html_table();
 $table->head = [
     get_string('form_name', 'local_themerules'),
     get_string('form_enabled', 'local_themerules'),
-    get_string('form_priority', 'local_themerules'),
     get_string('form_theme', 'local_themerules'),
     get_string('form_logo', 'local_themerules'),
     get_string('lastmodified', 'local_themerules'),
@@ -122,7 +126,9 @@ foreach ((new logo_repository())->get_all_records_ordered() as $logo) {
     $logonames[$logo->id] = $logo->name;
 }
 
-foreach ($rules as $rule) {
+$orderedrules = array_values($rules);
+
+foreach ($orderedrules as $index => $rule) {
     $editurl = new moodle_url('/local/themerules/edit.php', ['id' => $rule->id]);
 
     $statustext = $rule->enabled
@@ -135,6 +141,23 @@ foreach ($rules as $rule) {
             $url,
             array_merge(['action' => $action, 'id' => $rule->id, 'sesskey' => sesskey()], $extra)
         );
+
+        // The order in this list *is* the evaluation order (SPECIFICATIONS.md section 7), so
+        // reordering lives here rather than as a typed "priority" field - no up arrow on the
+        // first row, no down arrow on the last, same convention as Moodle's own admin lists
+        // (e.g. Manage authentication).
+        if ($index > 0) {
+            $actions .= $OUTPUT->action_icon(
+                $actionurl('moveup'),
+                new pix_icon('t/up', get_string('moveup', 'local_themerules'))
+            );
+        }
+        if ($index < count($orderedrules) - 1) {
+            $actions .= $OUTPUT->action_icon(
+                $actionurl('movedown'),
+                new pix_icon('t/down', get_string('movedown', 'local_themerules'))
+            );
+        }
 
         $actions .= $OUTPUT->action_icon($editurl, new pix_icon('t/edit', get_string('edit')));
         $actions .= $OUTPUT->action_icon(
@@ -154,7 +177,6 @@ foreach ($rules as $rule) {
     $table->data[] = [
         format_string($rule->name),
         $statustext,
-        $rule->priority,
         s(rule_validator::extract_theme($rule->actionjson)),
         $logoid !== null ? s($logonames[$logoid] ?? get_string('trace_notfound', 'local_themerules', $logoid)) : '',
         userdate($rule->timemodified),

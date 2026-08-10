@@ -54,7 +54,7 @@ class simulator {
         $resolved = []; // Axis type => resolved value, same shape as resolver::resolve().
         $traces = [];
 
-        foreach ($repository->get_enabled_rules_ordered() as $rule) {
+        foreach ($repository->get_enabled_rules_ordered() as $rank => $rule) {
             if (!$rule->is_active_at($now)) {
                 continue;
             }
@@ -90,7 +90,7 @@ class simulator {
                 $traces[] = new rule_trace(
                     $rule->get_id(),
                     $rule->get_name(),
-                    $rule->get_priority(),
+                    $rank + 1,
                     $traced['result'],
                     $traced['lines'],
                     $rulewontheme,
@@ -100,7 +100,7 @@ class simulator {
                 $traces[] = new rule_trace(
                     $rule->get_id(),
                     $rule->get_name(),
-                    $rule->get_priority(),
+                    $rank + 1,
                     false,
                     [['text' => get_string('trace_error', 'local_themerules', $e->getMessage()), 'result' => false]],
                     null

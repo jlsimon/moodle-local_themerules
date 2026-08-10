@@ -43,7 +43,6 @@ final class rule_cache_test extends \advanced_testcase {
             'name' => 'Cache test rule',
             'description' => '',
             'enabled' => 1,
-            'priority' => 0,
             'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
                 'operator' => 'is', 'value' => 123]),
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),
@@ -78,13 +77,13 @@ final class rule_cache_test extends \advanced_testcase {
 
     public function test_update_invalidates_the_cache(): void {
         $repository = new rule_repository();
-        $id = $repository->create($this->sample_record(['priority' => 1]));
+        $id = $repository->create($this->sample_record(['name' => 'Before update']));
         $repository->get_enabled_rules_ordered(); // Warms the cache.
 
-        $repository->update($id, $this->sample_record(['priority' => 99]));
+        $repository->update($id, $this->sample_record(['name' => 'After update']));
 
         $rules = $repository->get_enabled_rules_ordered();
-        $this->assertSame(99, $rules[0]->get_priority());
+        $this->assertSame('After update', $rules[0]->get_name());
     }
 
     public function test_delete_invalidates_the_cache(): void {

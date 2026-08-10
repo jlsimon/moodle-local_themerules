@@ -53,6 +53,8 @@ $string['status_enabled'] = 'Activada';
 $string['status_disabled'] = 'Desactivada';
 $string['enable'] = 'Activar';
 $string['disable'] = 'Desactivar';
+$string['moveup'] = 'Subir';
+$string['movedown'] = 'Bajar';
 $string['duplicate'] = 'Duplicar';
 $string['duplicate_name'] = '{$a} (copia)';
 $string['confirm_delete'] = '¿Eliminar la regla "{$a}"? Esta acción no se puede deshacer.';
@@ -62,6 +64,7 @@ $string['notify_saved'] = 'Regla guardada.';
 $string['notify_updated'] = 'Regla actualizada.';
 $string['notify_duplicated'] = 'Regla duplicada (creada desactivada).';
 $string['notify_deleted'] = 'Regla eliminada.';
+$string['notify_reordered'] = 'Orden de la regla actualizado.';
 $string['notify_logo_saved'] = 'Logo guardado.';
 $string['notify_logo_deleted'] = 'Logo eliminado.';
 
@@ -78,7 +81,6 @@ $string['confirm_delete_logo'] = '¿Eliminar el logo "{$a}"? Cualquier regla que
 $string['form_name'] = 'Nombre de la regla';
 $string['form_description'] = 'Descripción';
 $string['form_enabled'] = 'Activada';
-$string['form_priority'] = 'Prioridad';
 $string['form_theme'] = 'Aplicar tema';
 $string['form_logo'] = 'Aplicar logo';
 $string['form_logo_none'] = 'No cambiar el logo';
@@ -97,7 +99,6 @@ $string['form_save'] = 'Guardar regla';
 
 // Validation errors.
 $string['error_name_required'] = 'Indica un nombre para esta regla.';
-$string['error_priority_invalid'] = 'La prioridad debe ser un número.';
 $string['error_expression_invalid'] = 'Expresión de condición no válida: {$a}';
 $string['error_theme_invalid'] = 'Tema no válido: {$a}';
 $string['error_logo_invalid'] = 'Logo no válido: {$a}';
@@ -165,7 +166,7 @@ $string['trace_error'] = 'No se pudo evaluar esta regla: {$a}';
 
 // Privacy API.
 $string['privacy:metadata'] = 'El plugin Reglas de tema almacena la configuración de las reglas
-    (nombre, condiciones, acción, prioridad, fechas de validez) y, para cada regla, el id del
+    (nombre, condiciones, acción, orden de evaluación, fechas de validez) y, para cada regla, el id del
     administrador que la creó o modificó por última vez. Ese id es un registro de auditoría de
     una acción de configuración administrativa, no datos personales sobre ese administrador
     procesados por este plugin, por lo que no se implementa exportación/eliminación para él.';

@@ -121,7 +121,7 @@ if ($userid > 0) {
 
         echo html_writer::start_div('local-themerules-trace card mb-2');
         echo html_writer::start_div('card-body');
-        echo html_writer::tag('h4', '#' . $trace->priority . ' ' . s($trace->rulename), ['class' => 'card-title h6']);
+        echo html_writer::tag('h4', '#' . $trace->position . ' ' . s($trace->rulename), ['class' => 'card-title h6']);
 
         $lines = '';
         foreach ($trace->conditionlines as $line) {

@@ -50,18 +50,24 @@ Standard Moodle plugin installation:
 
 1. Go to *Site administration > Appearance > Theme rules*.
 2. Click **Create rule**.
-3. Give it a name, a priority (higher wins when several rules match),
-   choose the theme and/or logo to apply, and enter the condition
-   expression. Theme and logo are independent - a rule can set either,
-   both, or (leaving both blank) will be rejected as doing nothing.
+3. Give it a name, choose the theme and/or logo to apply, and enter the
+   condition expression. Theme and logo are independent - a rule can set
+   either, both, or (leaving both blank) will be rejected as doing
+   nothing.
 4. Tick **Enabled** and save.
 
+A new rule is always added at the bottom of the list. Evaluation order is
+the list order itself, top to bottom - use the **↑**/**↓** icons in the
+rule list to reorder rules; the first matching rule wins, exactly like
+Moodle's own "Manage authentication"-style admin lists. There is no
+separate numeric priority to set.
+
 Theme and logo resolve independently across the whole rule set, not just
-within one rule: if a higher-priority rule already set the theme, a lower-
-priority rule can still supply the logo (or vice versa) without overriding
-what the higher-priority rule already claimed. This is what lets several
-rules share one theme while only varying the logo, without repeating the
-theme choice in each of them - see the examples below.
+within one rule: if an earlier rule already set the theme, a later rule
+can still supply the logo (or vice versa) without overriding what the
+earlier rule already claimed. This is what lets several rules share one
+theme while only varying the logo, without repeating the theme choice in
+each of them - see the examples below.
 
 ### Logo library
 
@@ -150,8 +156,8 @@ Action:
 ]
 ```
 
-A rule only setting a logo (leaving whatever theme a higher-priority rule
-already chose untouched) uses a single-element action list:
+A rule only setting a logo (leaving whatever theme an earlier rule already
+chose untouched) uses a single-element action list:
 `[{"type": "logo", "logoid": 3}]`.
 
 Course + cohort combination:
@@ -198,9 +204,11 @@ combined with an OR of two cohorts:
 
 - **A rule doesn't seem to apply.** Use the Simulator with that user's id
   (and course id, if the rule uses `course`/`coursecategory`) to see
-  exactly which condition failed. Remember rules are evaluated in
-  descending priority order and the *first* match wins - a higher-priority
-  rule may be matching instead of the one you expected.
+  exactly which condition failed. Remember rules are evaluated top to
+  bottom (the rule list's order *is* the evaluation order) and the *first*
+  match wins - a rule higher up the list may be matching instead of the
+  one you expected. Move it down (or move yours up) with the **↑**/**↓**
+  icons.
 - **A `course`/`coursecategory` condition never matches anywhere except on
   a course page.** This is expected outside a real course context (site
   front page, dashboard, admin pages): those facts are only resolved once
@@ -208,7 +216,7 @@ combined with an OR of two cohorts:
   for the underlying Moodle lifecycle constraint.
 - **I changed a rule but the old theme is still showing.** The enabled-rule
   list is cached (MUC, area `rules`). The plugin invalidates it
-  automatically on every save/enable/disable/delete through the admin UI;
+  automatically on every save/enable/disable/reorder/delete through the admin UI;
   if a rule was changed by some other means (direct DB write, a script),
   run *Site administration > Development > Purge caches*.
 - **A rule points at a theme that no longer exists.** It is skipped safely

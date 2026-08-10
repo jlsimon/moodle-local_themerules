@@ -46,7 +46,6 @@ final class events_test extends \advanced_testcase {
             'name' => 'Event test rule',
             'description' => '',
             'enabled' => 1,
-            'priority' => 0,
             'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
                 'operator' => 'is', 'value' => 123]),
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),

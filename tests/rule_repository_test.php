@@ -42,7 +42,6 @@ final class rule_repository_test extends \advanced_testcase {
             'name' => 'Sample rule',
             'description' => '',
             'enabled' => 0,
-            'priority' => 0,
             'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
                 'operator' => 'is', 'value' => 123]),
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),
@@ -117,13 +116,104 @@ final class rule_repository_test extends \advanced_testcase {
 
     public function test_get_all_records_ordered_includes_disabled_rules(): void {
         $repository = new rule_repository();
-        $repository->create($this->sample_record(['name' => 'Enabled', 'enabled' => 1, 'priority' => 10]));
-        $repository->create($this->sample_record(['name' => 'Disabled', 'enabled' => 0, 'priority' => 20]));
+        $repository->create($this->sample_record(['name' => 'Enabled', 'enabled' => 1]));
+        $repository->create($this->sample_record(['name' => 'Disabled', 'enabled' => 0]));
 
         $all = $repository->get_all_records_ordered();
 
         $this->assertCount(2, $all);
-        // Highest priority first.
-        $this->assertSame('Disabled', reset($all)->name);
+    }
+
+    /**
+     * create() always appends at the end (SPECIFICATIONS.md section 7 / DECISIONS.md: sortorder
+     * is owned by the repository, not settable by callers) - new rules show up last, in the
+     * order they were created, until an admin moves them with move_up()/move_down().
+     */
+    public function test_get_all_records_ordered_reflects_creation_order(): void {
+        $repository = new rule_repository();
+        $repository->create($this->sample_record(['name' => 'First created']));
+        $repository->create($this->sample_record(['name' => 'Second created']));
+
+        $all = array_values($repository->get_all_records_ordered());
+
+        $this->assertCount(2, $all);
+        $this->assertSame('First created', $all[0]->name);
+        $this->assertSame('Second created', $all[1]->name);
+    }
+
+    public function test_create_ignores_caller_supplied_sortorder(): void {
+        $repository = new rule_repository();
+        $repository->create($this->sample_record(['name' => 'First created']));
+        // A caller passing an explicit sortorder (e.g. duplicate() cloning a source row) must
+        // not be able to jump the queue - create() always computes its own append-at-end value.
+        $repository->create($this->sample_record(['name' => 'Should still be last', 'sortorder' => 0]));
+
+        $all = array_values($repository->get_all_records_ordered());
+
+        $this->assertSame('Should still be last', $all[1]->name);
+    }
+
+    public function test_move_up_swaps_with_previous_rule(): void {
+        $repository = new rule_repository();
+        $firstid = $repository->create($this->sample_record(['name' => 'First']));
+        $secondid = $repository->create($this->sample_record(['name' => 'Second']));
+
+        $repository->move_up($secondid);
+
+        $all = array_values($repository->get_all_records_ordered());
+        $this->assertSame('Second', $all[0]->name);
+        $this->assertSame('First', $all[1]->name);
+        // Ids are stable - only the order changed, not identity.
+        $this->assertSame($secondid, (int) $all[0]->id);
+        $this->assertSame($firstid, (int) $all[1]->id);
+    }
+
+    public function test_move_down_swaps_with_next_rule(): void {
+        $repository = new rule_repository();
+        $repository->create($this->sample_record(['name' => 'First']));
+        $repository->create($this->sample_record(['name' => 'Second']));
+
+        $ordered = $repository->get_all_records_ordered();
+        $firstrecord = reset($ordered);
+        $repository->move_down((int) $firstrecord->id);
+
+        $all = array_values($repository->get_all_records_ordered());
+        $this->assertSame('Second', $all[0]->name);
+        $this->assertSame('First', $all[1]->name);
+    }
+
+    public function test_move_up_on_first_rule_is_a_noop(): void {
+        $repository = new rule_repository();
+        $firstid = $repository->create($this->sample_record(['name' => 'First']));
+        $repository->create($this->sample_record(['name' => 'Second']));
+
+        $repository->move_up($firstid);
+
+        $all = array_values($repository->get_all_records_ordered());
+        $this->assertSame('First', $all[0]->name);
+        $this->assertSame('Second', $all[1]->name);
+    }
+
+    public function test_move_down_on_last_rule_is_a_noop(): void {
+        $repository = new rule_repository();
+        $repository->create($this->sample_record(['name' => 'First']));
+        $secondid = $repository->create($this->sample_record(['name' => 'Second']));
+
+        $repository->move_down($secondid);
+
+        $all = array_values($repository->get_all_records_ordered());
+        $this->assertSame('First', $all[0]->name);
+        $this->assertSame('Second', $all[1]->name);
+    }
+
+    public function test_move_up_on_unknown_id_is_a_noop(): void {
+        $repository = new rule_repository();
+        $repository->create($this->sample_record(['name' => 'Only rule']));
+
+        // Must not throw.
+        $repository->move_up(999999);
+        $repository->move_down(999999);
+
+        $this->assertCount(1, $repository->get_all_records_ordered());
     }
 }

@@ -98,5 +98,38 @@ function xmldb_local_themerules_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026081003, 'local', 'themerules');
     }
 
+    if ($oldversion < 2026081100) {
+        // Replaced the numeric "priority" field with list-position ordering (drag/reorder via
+        // move up/down, backed by the "sortorder" field that already existed but was never
+        // used) - see DECISIONS.md. Backfill sortorder from the current priority order first,
+        // so any existing rule's effective evaluation order is preserved across the switch,
+        // before priority itself is dropped.
+        $rules = $DB->get_records('local_themerules_rule', null, 'priority DESC, id ASC', 'id');
+        $sortorder = 0;
+        foreach ($rules as $rule) {
+            $DB->set_field('local_themerules_rule', 'sortorder', $sortorder, ['id' => $rule->id]);
+            $sortorder++;
+        }
+
+        $table = new xmldb_table('local_themerules_rule');
+
+        $priorityindex = new xmldb_index('priorityidx', XMLDB_INDEX_NOTUNIQUE, ['priority']);
+        if ($dbman->index_exists($table, $priorityindex)) {
+            $dbman->drop_index($table, $priorityindex);
+        }
+
+        $priorityfield = new xmldb_field('priority', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        if ($dbman->field_exists($table, $priorityfield)) {
+            $dbman->drop_field($table, $priorityfield);
+        }
+
+        $sortorderindex = new xmldb_index('sortorderidx', XMLDB_INDEX_NOTUNIQUE, ['sortorder']);
+        if (!$dbman->index_exists($table, $sortorderindex)) {
+            $dbman->add_index($table, $sortorderindex);
+        }
+
+        upgrade_plugin_savepoint(true, 2026081100, 'local', 'themerules');
+    }
+
     return true;
 }

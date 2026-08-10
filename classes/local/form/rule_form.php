@@ -59,10 +59,9 @@ class rule_form extends \moodleform {
         $mform->addElement('advcheckbox', 'enabled', get_string('form_enabled', 'local_themerules'));
         $mform->setType('enabled', PARAM_BOOL);
 
-        $mform->addElement('text', 'priority', get_string('form_priority', 'local_themerules'));
-        $mform->setType('priority', PARAM_INT);
-        $mform->addRule('priority', get_string('required'), 'required', null, 'client');
-        $mform->setDefault('priority', 0);
+        // Evaluation order is set from the rule list (move up/down), not typed here - a new
+        // rule is always appended last; see rule_repository::create()/move_up()/move_down() and
+        // DECISIONS.md.
 
         // Theme and logo are each optional (DECISIONS.md: independent axes) - server-side
         // validation (rule_validator::validate()) requires at least one of the two, but neither

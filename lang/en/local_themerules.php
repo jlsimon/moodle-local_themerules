@@ -53,6 +53,8 @@ $string['status_enabled'] = 'Enabled';
 $string['status_disabled'] = 'Disabled';
 $string['enable'] = 'Enable';
 $string['disable'] = 'Disable';
+$string['moveup'] = 'Move up';
+$string['movedown'] = 'Move down';
 $string['duplicate'] = 'Duplicate';
 $string['duplicate_name'] = '{$a} (copy)';
 $string['confirm_delete'] = 'Delete rule "{$a}"? This cannot be undone.';
@@ -62,6 +64,7 @@ $string['notify_saved'] = 'Rule saved.';
 $string['notify_updated'] = 'Rule updated.';
 $string['notify_duplicated'] = 'Rule duplicated (created disabled).';
 $string['notify_deleted'] = 'Rule deleted.';
+$string['notify_reordered'] = 'Rule order updated.';
 $string['notify_logo_saved'] = 'Logo saved.';
 $string['notify_logo_deleted'] = 'Logo deleted.';
 
@@ -78,7 +81,6 @@ $string['confirm_delete_logo'] = 'Delete logo "{$a}"? Any rule still referencing
 $string['form_name'] = 'Rule name';
 $string['form_description'] = 'Description';
 $string['form_enabled'] = 'Enabled';
-$string['form_priority'] = 'Priority';
 $string['form_theme'] = 'Apply theme';
 $string['form_logo'] = 'Apply logo';
 $string['form_logo_none'] = "Don't change the logo";
@@ -97,7 +99,6 @@ $string['form_save'] = 'Save rule';
 
 // Validation errors.
 $string['error_name_required'] = 'Please give this rule a name.';
-$string['error_priority_invalid'] = 'Priority must be a number.';
 $string['error_expression_invalid'] = 'Invalid condition expression: {$a}';
 $string['error_theme_invalid'] = 'Invalid theme: {$a}';
 $string['error_logo_invalid'] = 'Invalid logo: {$a}';
@@ -165,7 +166,7 @@ $string['trace_error'] = 'Could not evaluate this rule: {$a}';
 
 // Privacy API.
 $string['privacy:metadata'] = 'The Theme rules plugin stores rule configuration (name, conditions,
-    action, priority, validity dates) and, for each rule, the id of the administrator who last
+    action, evaluation order, validity dates) and, for each rule, the id of the administrator who last
     created or modified it. That id is an audit trail of an administrative configuration action,
     not personal data about that administrator collected or processed by this plugin, so no
     export/deletion is implemented for it.';

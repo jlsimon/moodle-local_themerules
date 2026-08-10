@@ -39,7 +39,6 @@ final class rule_validator_test extends \advanced_testcase {
     private function valid_data(array $overrides = []): array {
         return array_merge([
             'name' => 'My rule',
-            'priority' => 10,
             'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
                 'operator' => 'is', 'value' => 5]),
             'theme' => 'boost',
@@ -67,12 +66,6 @@ final class rule_validator_test extends \advanced_testcase {
         $errors = rule_validator::validate($this->valid_data(['name' => '  ']));
 
         $this->assertArrayHasKey('name', $errors);
-    }
-
-    public function test_non_numeric_priority_is_rejected(): void {
-        $errors = rule_validator::validate($this->valid_data(['priority' => 'high']));
-
-        $this->assertArrayHasKey('priority', $errors);
     }
 
     public function test_invalid_expression_json_is_rejected(): void {

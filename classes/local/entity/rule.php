@@ -31,7 +31,6 @@ class rule {
     private int $id;
     private string $name;
     private bool $enabled;
-    private int $priority;
     private string $expressionjson;
     private string $actionjson;
     private int $timestart;
@@ -41,7 +40,6 @@ class rule {
         int $id,
         string $name,
         bool $enabled,
-        int $priority,
         string $expressionjson,
         string $actionjson,
         int $timestart,
@@ -50,7 +48,6 @@ class rule {
         $this->id = $id;
         $this->name = $name;
         $this->enabled = $enabled;
-        $this->priority = $priority;
         $this->expressionjson = $expressionjson;
         $this->actionjson = $actionjson;
         $this->timestart = $timestart;
@@ -62,7 +59,6 @@ class rule {
             (int) $record->id,
             (string) $record->name,
             (bool) $record->enabled,
-            (int) $record->priority,
             (string) $record->expressionjson,
             (string) $record->actionjson,
             (int) $record->timestart,
@@ -80,10 +76,6 @@ class rule {
 
     public function is_enabled(): bool {
         return $this->enabled;
-    }
-
-    public function get_priority(): int {
-        return $this->priority;
     }
 
     public function get_expression_json(): string {

@@ -45,7 +45,6 @@ final class simulator_test extends \advanced_testcase {
         $record = array_merge([
             'name' => 'Simulated rule',
             'enabled' => 1,
-            'priority' => 100,
             'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
                 'operator' => 'is', 'value' => 123]),
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),
@@ -84,10 +83,10 @@ final class simulator_test extends \advanced_testcase {
         $this->assertFalse($result->ruletraces[0]->conditionlines[0]['result']);
     }
 
-    public function test_first_matching_rule_by_priority_wins_and_stops_selecting(): void {
-        $this->create_rule(['name' => 'Low', 'priority' => 10,
+    public function test_first_matching_rule_in_list_order_wins_and_stops_selecting(): void {
+        $this->create_rule(['name' => 'Later in list', 'sortorder' => 1,
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'classic'])]);
-        $this->create_rule(['name' => 'High', 'priority' => 100,
+        $this->create_rule(['name' => 'Earlier in list', 'sortorder' => 0,
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost'])]);
 
         $result = simulator::run(fact_provider::create_for_user_and_course(123, null));
@@ -95,10 +94,10 @@ final class simulator_test extends \advanced_testcase {
         $this->assertSame('boost', $result->selectedtheme);
         $this->assertCount(2, $result->ruletraces);
         // Both rules matched (both traced as TRUE for transparency), but only the
-        // higher-priority one's theme was actually selected.
-        $this->assertTrue($result->ruletraces[0]->matched); // High, evaluated first.
+        // earlier-in-list one's theme was actually selected.
+        $this->assertTrue($result->ruletraces[0]->matched); // Earlier in list, evaluated first.
         $this->assertSame('boost', $result->ruletraces[0]->theme);
-        $this->assertTrue($result->ruletraces[1]->matched); // Low, still shown as matched...
+        $this->assertTrue($result->ruletraces[1]->matched); // Later in list, still shown as matched...
         $this->assertNull($result->ruletraces[1]->theme); // ...but did not win.
     }
 

@@ -67,7 +67,7 @@ class cache_manager {
 
     /**
      * Must be called after any write that could change what the enabled-rules query
-     * returns: create, update (including priority/enabled changes), delete.
+     * returns: create, update (including reordering/enabled changes), delete.
      */
     public static function purge(): void {
         self::cache()->purge();

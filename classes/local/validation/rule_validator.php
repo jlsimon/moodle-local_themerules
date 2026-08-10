@@ -38,10 +38,11 @@ class rule_validator {
     /**
      * Validates raw rule submission data.
      *
-     * @param array $data Raw form/submission data: name, priority, expressionjson, theme,
-     *                     logoid, timestart, timeend. theme and logoid are each individually
-     *                     optional (DECISIONS.md: independent axes), but at least one of the two
-     *                     must be set - a rule with neither would never do anything.
+     * @param array $data Raw form/submission data: name, expressionjson, theme, logoid,
+     *                     timestart, timeend. theme and logoid are each individually optional
+     *                     (DECISIONS.md: independent axes), but at least one of the two must be
+     *                     set - a rule with neither would never do anything. Evaluation order
+     *                     is not part of this data - see rule_repository's sortorder handling.
      * @return array<string, string> Element name => error message. Empty if valid.
      */
     public static function validate(array $data): array {
@@ -49,10 +50,6 @@ class rule_validator {
 
         if (trim((string) ($data['name'] ?? '')) === '') {
             $errors['name'] = get_string('error_name_required', 'local_themerules');
-        }
-
-        if (!is_numeric($data['priority'] ?? null)) {
-            $errors['priority'] = get_string('error_priority_invalid', 'local_themerules');
         }
 
         try {

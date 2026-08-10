@@ -45,7 +45,6 @@ final class resolver_test extends \advanced_testcase {
         $record = array_merge([
             'name' => 'Test rule',
             'enabled' => 1,
-            'priority' => 0,
             'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
                 'operator' => 'is', 'value' => 123]),
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),
@@ -108,20 +107,22 @@ final class resolver_test extends \advanced_testcase {
     }
 
     /**
-     * SPECIFICATIONS.md section 46, Test D / section 7: higher priority wins even if
-     * a lower-priority rule also matches.
+     * SPECIFICATIONS.md section 46, Test D / section 7: the rule earlier in the evaluation
+     * order wins even if a later one also matches - and specifically, that this is governed by
+     * sortorder, not insertion/id order (the "later in list" rule here is inserted *first*, so
+     * an id-based tiebreak alone would pick the wrong winner).
      */
-    public function test_higher_priority_rule_wins(): void {
+    public function test_rule_earlier_in_list_wins(): void {
         $this->create_rule([
-            'name' => 'Low priority',
-            'priority' => 50,
+            'name' => 'Later in list',
+            'sortorder' => 1,
             'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
                 'operator' => 'is', 'value' => 123]),
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'classic']),
         ]);
         $this->create_rule([
-            'name' => 'High priority',
-            'priority' => 100,
+            'name' => 'Earlier in list',
+            'sortorder' => 0,
             'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
                 'operator' => 'is', 'value' => 123]),
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),
@@ -134,11 +135,9 @@ final class resolver_test extends \advanced_testcase {
 
     public function test_invalid_theme_rule_is_skipped_safely(): void {
         $this->create_rule([
-            'priority' => 100,
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'this_theme_does_not_exist']),
         ]);
         $this->create_rule([
-            'priority' => 50,
             'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),
         ]);
 
@@ -150,12 +149,9 @@ final class resolver_test extends \advanced_testcase {
 
     public function test_corrupt_expression_json_is_skipped_safely(): void {
         $this->create_rule([
-            'priority' => 100,
             'expressionjson' => '{not valid json',
         ]);
-        $this->create_rule([
-            'priority' => 50,
-        ]);
+        $this->create_rule([]);
 
         $theme = resolver::resolve_theme(new evaluation_context(123));
 
@@ -261,19 +257,17 @@ final class resolver_test extends \advanced_testcase {
     }
 
     /**
-     * A lower-priority rule can still fill in an axis a higher-priority rule left unset,
-     * without ever overriding the axis that rule already claimed.
+     * A rule later in the evaluation order can still fill in an axis an earlier one left unset,
+     * without ever overriding the axis that earlier rule already claimed.
      */
-    public function test_lower_priority_rule_fills_in_axis_higher_priority_rule_left_unset(): void {
+    public function test_later_rule_fills_in_axis_earlier_rule_left_unset(): void {
         $logoid = $this->create_logo();
         $this->create_rule([
-            'name' => 'Theme only, high priority',
-            'priority' => 100,
+            'name' => 'Theme only, evaluated first',
             'actionjson' => json_encode([['type' => 'theme', 'theme' => 'boost']]),
         ]);
         $this->create_rule([
-            'name' => 'Logo only, low priority',
-            'priority' => 10,
+            'name' => 'Logo only, evaluated second',
             'actionjson' => json_encode([['type' => 'logo', 'logoid' => $logoid]]),
         ]);
 
@@ -284,19 +278,17 @@ final class resolver_test extends \advanced_testcase {
     }
 
     /**
-     * A higher-priority rule's own theme still wins even when a lower-priority rule also sets
-     * a theme - the per-axis "first match wins" guarantee must hold, not just "first rule wins".
+     * An earlier rule's own theme still wins even when a later rule also sets a theme - the
+     * per-axis "first match wins" guarantee must hold, not just "first rule wins".
      */
-    public function test_higher_priority_rule_theme_is_not_overridden_by_lower_priority_rule(): void {
+    public function test_earlier_rule_theme_is_not_overridden_by_later_rule(): void {
         $logoid = $this->create_logo();
         $this->create_rule([
-            'name' => 'High priority theme',
-            'priority' => 100,
+            'name' => 'Theme, evaluated first',
             'actionjson' => json_encode([['type' => 'theme', 'theme' => 'boost']]),
         ]);
         $this->create_rule([
-            'name' => 'Low priority theme + logo',
-            'priority' => 10,
+            'name' => 'Theme + logo, evaluated second',
             'actionjson' => json_encode([
                 ['type' => 'theme', 'theme' => 'classic'],
                 ['type' => 'logo', 'logoid' => $logoid],
@@ -319,12 +311,10 @@ final class resolver_test extends \advanced_testcase {
 
     public function test_invalid_logo_rule_is_skipped_safely(): void {
         $this->create_rule([
-            'priority' => 100,
             'actionjson' => json_encode([['type' => 'logo', 'logoid' => 999999]]),
         ]);
         $logoid = $this->create_logo();
         $this->create_rule([
-            'priority' => 50,
             'actionjson' => json_encode([['type' => 'logo', 'logoid' => $logoid]]),
         ]);
 

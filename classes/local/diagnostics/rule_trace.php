@@ -31,7 +31,10 @@ namespace local_themerules\local\diagnostics;
 class rule_trace {
     public int $ruleid;
     public string $rulename;
-    public int $priority;
+
+    /** 1-indexed position in the evaluation order (list position, not a stored value - see DECISIONS.md). */
+    public int $position;
+
     public bool $matched;
 
     /** @var array{text: string, result: bool}[] Flattened per-condition checks, in tree order. */
@@ -46,7 +49,7 @@ class rule_trace {
     public function __construct(
         int $ruleid,
         string $rulename,
-        int $priority,
+        int $position,
         bool $matched,
         array $conditionlines,
         ?string $theme,
@@ -54,7 +57,7 @@ class rule_trace {
     ) {
         $this->ruleid = $ruleid;
         $this->rulename = $rulename;
-        $this->priority = $priority;
+        $this->position = $position;
         $this->matched = $matched;
         $this->conditionlines = $conditionlines;
         $this->theme = $theme;
