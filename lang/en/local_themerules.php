@@ -139,6 +139,7 @@ $string['simulator_selectedlogovalue'] = 'Logo "{$a}" would be applied.';
 $string['simulator_nologomatch'] = 'No rule matches. The site\'s normal logo would be shown.';
 $string['simulator_devicetype'] = 'Device type';
 $string['simulator_devicetype_auto'] = 'Auto-detect (your current browser)';
+$string['simulator_userid_placeholder'] = '0 or blank = anonymous/not logged in';
 
 // Trace text (simulator condition lines and facts).
 $string['trace_fact_user'] = 'User';
@@ -148,6 +149,7 @@ $string['trace_fact_cohorts'] = 'Cohorts';
 $string['trace_fact_none'] = 'None';
 $string['trace_fact_device'] = 'Device type';
 $string['trace_fact_coursetags'] = 'Course tags';
+$string['trace_anonymous'] = 'Anonymous / not logged in';
 $string['trace_user'] = 'User is {$a}';
 $string['trace_course'] = 'Course is {$a}';
 $string['trace_coursecategory'] = 'Course category is {$a}';

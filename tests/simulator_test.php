@@ -176,4 +176,28 @@ final class simulator_test extends \advanced_testcase {
         $this->assertStringContainsString('exam-mode', $result->ruletraces[0]->conditionlines[0]['text']);
         $this->assertContains('exam-mode', array_values($result->facts));
     }
+
+    /**
+     * userid 0 is not "not found" - it is what a genuinely anonymous, not-logged-in visitor's
+     * userid actually is at Tier A, so the simulator must let an admin test that scenario
+     * (previously simulate.php refused to run at all for userid 0).
+     */
+    public function test_anonymous_userid_zero_is_traced_as_anonymous_not_not_found(): void {
+        $result = simulator::run(fact_provider::create_for_user_and_course(0, null));
+
+        $this->assertContains('Anonymous / not logged in', array_values($result->facts));
+        $this->assertStringNotContainsString('not found', implode(' ', array_values($result->facts)));
+    }
+
+    public function test_user_condition_targeting_zero_matches_anonymous_context(): void {
+        $this->create_rule([
+            'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'user',
+                'operator' => 'is', 'value' => 0]),
+        ]);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(0, null));
+
+        $this->assertTrue($result->ruletraces[0]->matched);
+        $this->assertStringContainsString('Anonymous / not logged in', $result->ruletraces[0]->conditionlines[0]['text']);
+    }
 }

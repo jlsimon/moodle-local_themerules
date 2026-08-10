@@ -88,10 +88,14 @@ unavailable.
 
 Use **Simulate** (same admin page) to check, for a given user id and
 course id, exactly which rules match, why, and which theme *and* logo
-would be selected - without affecting anyone's actual session. It also
-lets you override the device type being simulated (auto-detected from your
-own browser by default), so you can test a `device` rule as "what if this
-were a tablet" without needing an actual tablet.
+would be selected - without affecting anyone's actual session. Leave the
+user id at `0` (or blank) to simulate an anonymous, not-logged-in visitor
+- that is genuinely what a real visitor's user id is at the point Tier A
+resolution runs, so `user is 0` in a condition already means "anonymous
+visitor" today, not a broken reference. It also lets you override the
+device type being simulated (auto-detected from your own browser by
+default), so you can test a `device` rule as "what if this were a tablet"
+without needing an actual tablet.
 
 ### Action types
 
@@ -104,7 +108,7 @@ were a tablet" without needing an actual tablet.
 
 | Identifier | Operators | Notes |
 |---|---|---|
-| `user` | `is` | Value: a user id. |
+| `user` | `is` | Value: a user id. `0` matches an anonymous, not-logged-in visitor (that is genuinely what their user id is at Tier A), not a broken reference. |
 | `course` | `is` | Value: a course id. |
 | `coursecategory` | `in_category` | Value: a category id. Optional `"includechildren": true` to also match descendant categories. |
 | `cohort` | `member`, `not_member` | Value: a cohort id. |

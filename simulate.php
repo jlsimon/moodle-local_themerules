@@ -30,7 +30,8 @@ use local_themerules\local\condition\device_condition;
 use local_themerules\local\diagnostics\simulator;
 use local_themerules\local\engine\fact_provider;
 
-$userid = optional_param('userid', 0, PARAM_INT);
+$submitted = optional_param('submitted', 0, PARAM_BOOL);
+$userid = optional_param('userid', 0, PARAM_INT); // 0 = anonymous/not logged in - a real value, not "no input yet".
 $courseid = optional_param('courseid', 0, PARAM_INT);
 $devicetype = optional_param('devicetype', '', PARAM_ALPHA);
 
@@ -53,13 +54,15 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('simulator', 'local_themerules'));
 
 echo html_writer::start_tag('form', ['method' => 'get', 'action' => $simulateurl, 'class' => 'form-inline mb-3']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'submitted', 'value' => '1']);
 echo html_writer::tag(
     'label',
     get_string('trace_fact_user', 'local_themerules'),
     ['for' => 'themerules-sim-userid', 'class' => 'me-1']
 );
 echo html_writer::empty_tag('input', ['type' => 'number', 'name' => 'userid', 'id' => 'themerules-sim-userid',
-    'value' => $userid ?: '', 'class' => 'form-control d-inline-block w-auto me-3', 'required' => 'required']);
+    'value' => $userid ?: '', 'placeholder' => get_string('simulator_userid_placeholder', 'local_themerules'),
+    'class' => 'form-control d-inline-block w-auto me-3']);
 echo html_writer::tag(
     'label',
     get_string('trace_fact_course', 'local_themerules'),
@@ -87,7 +90,7 @@ echo html_writer::empty_tag('input', ['type' => 'submit', 'value' => get_string(
     'class' => 'btn btn-primary']);
 echo html_writer::end_tag('form');
 
-if ($userid > 0) {
+if ($submitted) {
     $course = null;
     if ($courseid > 0) {
         $course = $DB->get_record('course', ['id' => $courseid], '*', IGNORE_MISSING) ?: null;

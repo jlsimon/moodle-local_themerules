@@ -233,7 +233,16 @@ class simulator {
         return $facts;
     }
 
+    /**
+     * Id 0 is not "not found" - it is what a genuinely anonymous, not-logged-in visitor's
+     * userid actually is at Tier A (fact_provider::create_for_current_user() reads
+     * `$USER->id ?? 0`), so a `user is 0` condition already matches real anonymous visitors in
+     * production today. Described accordingly rather than as a broken reference.
+     */
     private static function user_name(int $id): string {
+        if ($id === 0) {
+            return get_string('trace_anonymous', 'local_themerules');
+        }
         global $DB;
         $fields = 'id, ' . implode(', ', \core_user\fields::get_name_fields());
         $user = $DB->get_record('user', ['id' => $id], $fields, IGNORE_MISSING);
