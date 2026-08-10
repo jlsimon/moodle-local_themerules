@@ -26,10 +26,12 @@ namespace local_themerules;
 
 use local_themerules\local\engine\fact_provider;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(fact_provider::class)]
 /**
  * Unit tests for fact_provider.
+ *
+ * @covers \local_themerules\local\engine\fact_provider
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(fact_provider::class)]
 final class fact_provider_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
@@ -156,7 +158,7 @@ final class fact_provider_test extends \advanced_testcase {
     public function test_create_for_course_resolves_group_membership(): void {
         $course = $this->getDataGenerator()->create_course();
         $user = $this->getDataGenerator()->create_user();
-        // groups_add_member() silently no-ops for a user not enrolled in the group's course.
+        // Core's groups_add_member() silently no-ops for a user not enrolled in the course.
         $this->getDataGenerator()->enrol_user($user->id, $course->id);
         $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
         $this->getDataGenerator()->create_group_member(['groupid' => $group->id, 'userid' => $user->id]);

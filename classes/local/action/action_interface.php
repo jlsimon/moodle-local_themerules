@@ -55,6 +55,7 @@ interface action_interface {
      * Applies this action for the given facts.
      *
      * @param array $config The action node (type, ...).
+     * @param evaluation_context $context
      * @return string|null This action's resolved value for its own axis (e.g. a theme name, or a
      *         logo asset id), or null if this action does not resolve on this axis (e.g. it
      *         references an entity that has since been deleted).

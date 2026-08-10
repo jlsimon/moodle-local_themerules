@@ -48,6 +48,13 @@ use local_themerules\local\repository\rule_repository;
  * really happen, not an approximation of it.
  */
 class simulator {
+    /**
+     * Runs every enabled, time-active rule against the given facts and builds a full trace.
+     *
+     * @param evaluation_context $context
+     * @param rule_repository|null $repository
+     * @return simulation_result
+     */
     public static function run(evaluation_context $context, ?rule_repository $repository = null): simulation_result {
         $repository ??= new rule_repository();
         $now = time();
@@ -116,6 +123,7 @@ class simulator {
     /**
      * Decodes a rule's actionjson into a list of action nodes.
      *
+     * @param string $actionjson
      * @return array[] Action nodes, tolerating both the legacy single-object shape and the
      *         current list shape - same small independent copy as rule_validator.php's
      *         decode_actions(), see that method's docblock for why it is not shared.
@@ -133,6 +141,8 @@ class simulator {
     /**
      * Recursively evaluates one expression node while recording a flat trace line per condition.
      *
+     * @param array $node
+     * @param evaluation_context $context
      * @return array{result: bool, lines: array{text: string, result: bool}[]}
      */
     private static function trace_node(array $node, evaluation_context $context): array {
@@ -156,6 +166,12 @@ class simulator {
         return ['result' => $result, 'lines' => $lines];
     }
 
+    /**
+     * Human-readable trace text for a single condition node.
+     *
+     * @param array $node
+     * @return string
+     */
     private static function describe_condition(array $node): string {
         $value = (int) ($node['value'] ?? 0);
 
@@ -226,6 +242,12 @@ class simulator {
         }
     }
 
+    /**
+     * The "resolved facts" table shown at the top of a simulation, e.g. "User" => "Jane (id 5)".
+     *
+     * @param evaluation_context $context
+     * @return array
+     */
     private static function describe_facts(evaluation_context $context): array {
         global $DB;
 
@@ -269,6 +291,9 @@ class simulator {
      * userid actually is at Tier A (fact_provider::create_for_current_user() reads
      * `$USER->id ?? 0`), so a `user is 0` condition already matches real anonymous visitors in
      * production today. Described accordingly rather than as a broken reference.
+     *
+     * @param int $id
+     * @return string
      */
     private static function user_name(int $id): string {
         if ($id === 0) {
@@ -280,30 +305,60 @@ class simulator {
         return $user ? fullname($user) . " (id {$id})" : self::not_found($id);
     }
 
+    /**
+     * Human-readable course name for a trace line.
+     *
+     * @param int $id
+     * @return string
+     */
     private static function course_name(int $id): string {
         global $DB;
         $course = $DB->get_record('course', ['id' => $id], 'id, fullname', IGNORE_MISSING);
         return $course ? format_string($course->fullname) . " (id {$id})" : self::not_found($id);
     }
 
+    /**
+     * Human-readable category name for a trace line.
+     *
+     * @param int $id
+     * @return string
+     */
     private static function category_name(int $id): string {
         global $DB;
         $category = $DB->get_record('course_categories', ['id' => $id], 'id, name', IGNORE_MISSING);
         return $category ? format_string($category->name) . " (id {$id})" : self::not_found($id);
     }
 
+    /**
+     * Human-readable cohort name for a trace line.
+     *
+     * @param int $id
+     * @return string
+     */
     private static function cohort_name(int $id): string {
         global $DB;
         $cohort = $DB->get_record('cohort', ['id' => $id], 'id, name', IGNORE_MISSING);
         return $cohort ? format_string($cohort->name) . " (id {$id})" : self::not_found($id);
     }
 
+    /**
+     * Human-readable group name for a trace line.
+     *
+     * @param int $id
+     * @return string
+     */
     private static function group_name(int $id): string {
         global $DB;
         $group = $DB->get_record('groups', ['id' => $id], 'id, name', IGNORE_MISSING);
         return $group ? format_string($group->name) . " (id {$id})" : self::not_found($id);
     }
 
+    /**
+     * Human-readable logo asset name for a trace line.
+     *
+     * @param int $id
+     * @return string
+     */
     private static function logo_name(int $id): string {
         global $DB;
         $logo = $DB->get_record('local_themerules_logo', ['id' => $id], 'id, name', IGNORE_MISSING);
@@ -315,6 +370,9 @@ class simulator {
      * field first (its name lives in the DB, unlike a standard field's) and falling back to
      * core's own display name for a standard field - self-contained rather than depending on
      * the condition's own `customfield` flag, so this stays correct even for a stale/corrupt one.
+     *
+     * @param string $field
+     * @return string
      */
     private static function profilefield_label(string $field): string {
         global $DB;
@@ -334,6 +392,12 @@ class simulator {
         return self::not_found_field($field);
     }
 
+    /**
+     * Trace text for a profilefield shortname that no longer resolves to anything real.
+     *
+     * @param string $field
+     * @return string
+     */
     private static function not_found_field(string $field): string {
         return get_string('trace_fieldnotfound', 'local_themerules', $field);
     }
@@ -341,6 +405,9 @@ class simulator {
     /**
      * SPECIFICATIONS.md section 50: a reference to a deleted entity must not break anything,
      * and the admin-facing surface (here, the simulator) should indicate it is broken.
+     *
+     * @param int $id
+     * @return string
      */
     private static function not_found(int $id): string {
         return get_string('trace_notfound', 'local_themerules', $id);

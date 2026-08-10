@@ -37,10 +37,20 @@ use local_themerules\local\engine\evaluation_context;
  * hook_listener's CSS injection).
  */
 class logo_action implements action_interface {
+    /**
+     * Identifier used in action JSON: "logo".
+     *
+     * @return string
+     */
     public function get_identifier(): string {
         return 'logo';
     }
 
+    /**
+     * Validates an action node's "logoid", throwing on error.
+     *
+     * @param array $config
+     */
     public function validate(array $config): void {
         $logoid = $config['logoid'] ?? null;
         if (!is_numeric($logoid) || (int) $logoid <= 0) {
@@ -53,6 +63,13 @@ class logo_action implements action_interface {
         }
     }
 
+    /**
+     * Resolves the logo axis to a logo asset id, or null if it no longer exists.
+     *
+     * @param array $config
+     * @param evaluation_context $context
+     * @return string|null
+     */
     public function apply(array $config, evaluation_context $context): ?string {
         global $DB;
 

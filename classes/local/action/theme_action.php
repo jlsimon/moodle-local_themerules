@@ -30,10 +30,20 @@ use local_themerules\local\engine\evaluation_context;
  * "Set Moodle theme" action. See SPECIFICATIONS.md section 18.
  */
 class theme_action implements action_interface {
+    /**
+     * Identifier used in action JSON: "theme".
+     *
+     * @return string
+     */
     public function get_identifier(): string {
         return 'theme';
     }
 
+    /**
+     * Validates an action node's "theme" is a real, installed theme, throwing on error.
+     *
+     * @param array $config
+     */
     public function validate(array $config): void {
         $theme = $config['theme'] ?? '';
         if ($theme === '' || !is_string($theme)) {
@@ -45,6 +55,13 @@ class theme_action implements action_interface {
         }
     }
 
+    /**
+     * Resolves the theme axis to a theme name, or null if it is no longer installed.
+     *
+     * @param array $config
+     * @param evaluation_context $context
+     * @return string|null
+     */
     public function apply(array $config, evaluation_context $context): ?string {
         $theme = $config['theme'] ?? '';
 

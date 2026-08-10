@@ -104,7 +104,7 @@ if ($record) {
 
 $PAGE->requires->js_call_amd('local_themerules/rule_editor', 'init', [
     'id_expressionjson',
-    array_values(condition_registry::get_all_editor_schemas()),
+    'local-themerules-condition-schemas',
     [
         'matchlabel' => get_string('editor_matchlabel', 'local_themerules'),
         'matchall' => get_string('editor_matchall', 'local_themerules'),
@@ -127,5 +127,18 @@ $PAGE->requires->js_call_amd('local_themerules/rule_editor', 'init', [
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($id ? get_string('editrule', 'local_themerules') : get_string('createrule', 'local_themerules'));
+
+// Condition schemas (options/entitytype/fieldoptions/... - easily over 2KB once every
+// condition's real site data is included) are embedded here rather than passed as a
+// js_call_amd() argument: that call warns via debugging() once its serialized arguments pass
+// 1024 characters ("better ways to pass lots of data... e.g. via Ajax, data attributes"),
+// which this payload already exceeds. A JSON <script> block read by rule_editor.js's init()
+// is the data-attribute-style alternative core's own warning points at.
+echo html_writer::tag(
+    'script',
+    json_encode(array_values(condition_registry::get_all_editor_schemas())),
+    ['type' => 'application/json', 'id' => 'local-themerules-condition-schemas']
+);
+
 $form->display();
 echo $OUTPUT->footer();

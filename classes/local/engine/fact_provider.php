@@ -46,6 +46,10 @@ class fact_provider {
     /**
      * Full facts, including the real course/category. Only call this once the real
      * course for the current page is known (i.e. after require_login($course)).
+     *
+     * @param int $userid
+     * @param \stdClass $course
+     * @return evaluation_context
      */
     public static function create_for_course(int $userid, \stdClass $course): evaluation_context {
         return self::create_for_user_and_course($userid, $course);
@@ -55,9 +59,12 @@ class fact_provider {
      * General-purpose entry point, also used by the simulator (section 31) to build a
      * context for an arbitrary user/course pair rather than the current session's.
      *
+     * @param int $userid
+     * @param \stdClass|null $course
      * @param string|null $devicetype Override for the simulator (SPECIFICATIONS.md section 31),
      *        one of \core_useragent::DEVICETYPE_*. Null (the default, and always the case for
      *        Tier A/B production callers) means "use the real current request's device".
+     * @return evaluation_context
      */
     public static function create_for_user_and_course(
         int $userid,
@@ -88,6 +95,7 @@ class fact_provider {
     /**
      * The ids of every cohort the given user is a member of.
      *
+     * @param int $userid
      * @return int[]
      */
     private static function get_cohort_ids(int $userid): array {
@@ -115,6 +123,8 @@ class fact_provider {
      * a member of group X". Same reasoning as get_cohort_ids() below not using any cohort UI
      * helper either.
      *
+     * @param int $userid
+     * @param int $courseid
      * @return int[]
      */
     private static function get_course_group_ids(int $userid, int $courseid): array {
@@ -135,6 +145,7 @@ class fact_provider {
      * Category id and all its ancestors, root first, e.g. [1, 5, 12] for
      * "FUNDAE > Administration > IT" (SPECIFICATIONS.md section 12).
      *
+     * @param int $categoryid
      * @return int[]
      */
     private static function get_category_path(int $categoryid): array {
@@ -155,6 +166,7 @@ class fact_provider {
     /**
      * Normalized (\core_tag_tag::normalize()) names of a course's tags.
      *
+     * @param int $courseid
      * @return string[]
      */
     private static function get_course_tags(int $courseid): array {

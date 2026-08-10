@@ -27,10 +27,12 @@ namespace local_themerules;
 use local_themerules\local\diagnostics\simulator;
 use local_themerules\local\engine\fact_provider;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(simulator::class)]
 /**
  * Unit tests for simulator.
+ *
+ * @covers \local_themerules\local\diagnostics\simulator
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(simulator::class)]
 final class simulator_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
@@ -38,6 +40,12 @@ final class simulator_test extends \advanced_testcase {
         $this->setAdminUser();
     }
 
+    /**
+     * Inserts a minimal valid local_themerules_rule row directly, for simulator tests.
+     *
+     * @param array $overrides
+     * @return int
+     */
     private function create_rule(array $overrides = []): int {
         global $DB, $USER;
 
@@ -180,7 +188,7 @@ final class simulator_test extends \advanced_testcase {
     public function test_coursegroup_condition_is_traced_with_readable_text(): void {
         $course = $this->getDataGenerator()->create_course();
         $user = $this->getDataGenerator()->create_user();
-        // groups_add_member() silently no-ops for a user not enrolled in the group's course.
+        // Core's groups_add_member() silently no-ops for a user not enrolled in the course.
         $this->getDataGenerator()->enrol_user($user->id, $course->id);
         $group = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Team Alpha']);
         $this->getDataGenerator()->create_group_member(['groupid' => $group->id, 'userid' => $user->id]);

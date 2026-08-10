@@ -26,11 +26,13 @@ namespace local_themerules;
 
 use local_themerules\local\repository\rule_repository;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_themerules\local\cache\cache_manager::class)]
 /**
  * SPECIFICATIONS.md section 28: the enabled-rules cache must avoid a DB query
  * on every request once warm, and must invalidate on every write.
+ *
+ * @covers \local_themerules\local\cache\cache_manager
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(\local_themerules\local\cache\cache_manager::class)]
 final class rule_cache_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
@@ -38,6 +40,12 @@ final class rule_cache_test extends \advanced_testcase {
         $this->setAdminUser();
     }
 
+    /**
+     * A minimal valid local_themerules_rule record, for rule_repository::create()/update().
+     *
+     * @param array $overrides
+     * @return \stdClass
+     */
     private function sample_record(array $overrides = []): \stdClass {
         return (object) array_merge([
             'name' => 'Cache test rule',

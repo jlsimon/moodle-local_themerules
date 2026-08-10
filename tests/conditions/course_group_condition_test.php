@@ -27,14 +27,19 @@ namespace local_themerules;
 use local_themerules\local\condition\course_group_condition;
 use local_themerules\local\engine\evaluation_context;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(course_group_condition::class)]
 /**
  * Unit tests for course_group_condition.
+ *
+ * @covers \local_themerules\local\condition\course_group_condition
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(course_group_condition::class)]
 final class course_group_condition_test extends \advanced_testcase {
     /**
      * Builds a context with a real course id (5) and the given group memberships, matching the
      * constructor's positional argument order (evaluation_context.php).
+     *
+     * @param int[] $groupids
+     * @return evaluation_context
      */
     private function context_with_groups(array $groupids): evaluation_context {
         return new evaluation_context(1, 5, null, [], [], 'default', [], $groupids);

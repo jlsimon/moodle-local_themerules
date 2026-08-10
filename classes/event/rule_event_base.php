@@ -32,11 +32,19 @@ namespace local_themerules\event;
  * (section 34: "Avoid firing runtime events on every page/theme evaluation").
  */
 abstract class rule_event_base extends \core\event\base {
+    /**
+     * Common edulevel/objecttable for every rule event; subclasses add their own crud value.
+     */
     protected function init(): void {
         $this->data['edulevel'] = self::LEVEL_OTHER;
         $this->data['objecttable'] = 'local_themerules_rule';
     }
 
+    /**
+     * The admin rule list page, where every rule event can be reviewed/undone.
+     *
+     * @return \moodle_url
+     */
     public function get_url(): \moodle_url {
         return new \moodle_url('/local/themerules/index.php');
     }

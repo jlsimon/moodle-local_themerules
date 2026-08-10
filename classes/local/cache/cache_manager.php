@@ -73,6 +73,11 @@ class cache_manager {
         self::cache()->purge();
     }
 
+    /**
+     * The rules MUC cache instance.
+     *
+     * @return \cache
+     */
     private static function cache(): \cache {
         return \cache::make('local_themerules', self::CACHE_AREA);
     }

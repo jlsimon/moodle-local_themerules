@@ -28,16 +28,24 @@ use local_themerules\local\engine\evaluation_context;
 use local_themerules\local\engine\fact_provider;
 use local_themerules\local\engine\resolver;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(resolver::class)]
 /**
  * Unit tests for resolver.
+ *
+ * @covers \local_themerules\local\engine\resolver
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(resolver::class)]
 final class resolver_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
     }
 
+    /**
+     * Inserts a minimal valid local_themerules_rule row directly, for resolver tests.
+     *
+     * @param array $overrides
+     * @return int
+     */
     private function create_rule(array $overrides = []): int {
         global $DB, $USER;
 
@@ -59,6 +67,11 @@ final class resolver_test extends \advanced_testcase {
         return (int) $DB->insert_record('local_themerules_rule', (object) $record);
     }
 
+    /**
+     * Inserts a minimal logo_repository row directly, for tests that only need a real logoid.
+     *
+     * @return int
+     */
     private function create_logo(): int {
         global $DB;
 
@@ -199,7 +212,13 @@ final class resolver_test extends \advanced_testcase {
     /**
      * SPECIFICATIONS.md sections 1/72/79, the plugin's canonical example:
      * course category = FUNDAE (including descendants) AND
-     * (cohort = Company A OR cohort = Company B) -> theme_cigales.
+     * (cohort = Company A OR cohort = Company B) -> a themed result.
+     *
+     * README.md's own illustration of this example uses "theme_cigales" for narrative flavour,
+     * but a PHPUnit test must stay hermetic regardless of which optional themes happen to be
+     * installed on whatever Moodle instance runs it (theme_action::apply() safely skips - and
+     * calls debugging() - a rule pointing at a theme that isn't installed, so this test must use
+     * one guaranteed to exist everywhere): "boost" ships with core and cannot be uninstalled.
      */
     public function test_canonical_fundae_company_example(): void {
         $fundae = $this->getDataGenerator()->create_category(['name' => 'FUNDAE']);
@@ -211,7 +230,7 @@ final class resolver_test extends \advanced_testcase {
 
         $this->create_rule([
             'name' => 'Corporate branding',
-            'actionjson' => json_encode(['type' => 'theme', 'theme' => 'cigales']),
+            'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),
             'expressionjson' => json_encode(['type' => 'group', 'operator' => 'and', 'children' => [
                 ['type' => 'condition', 'condition' => 'coursecategory', 'operator' => 'in_category',
                     'value' => (int) $fundae->id, 'includechildren' => true],
@@ -224,7 +243,7 @@ final class resolver_test extends \advanced_testcase {
 
         $context = fact_provider::create_for_course((int) $user->id, $course);
 
-        $this->assertSame('cigales', resolver::resolve_theme($context));
+        $this->assertSame('boost', resolver::resolve_theme($context));
     }
 
     public function test_course_condition_does_not_match_without_course_context(): void {

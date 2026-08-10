@@ -38,6 +38,10 @@ require_once($CFG->libdir . '/formslib.php');
  * for now; the visual nested-group builder (section 22/65) is Phase 5.
  */
 class rule_form extends \moodleform {
+    /**
+     * Builds the form: name/description/enabled, theme/logo action selects, the condition
+     * expression textarea, and the optional validity window.
+     */
     public function definition() {
         $mform = $this->_form;
 
@@ -98,6 +102,11 @@ class rule_form extends \moodleform {
         $this->add_action_buttons(true, get_string('form_save', 'local_themerules'));
     }
 
+    /**
+     * The "Apply theme" select's options.
+     *
+     * @return array<string, string> Value => label, every installed theme plus a blank choice.
+     */
     private function theme_options(): array {
         $options = ['' => get_string('choosedots')];
         foreach (array_keys(\core_component::get_plugin_list('theme')) as $theme) {
@@ -106,6 +115,11 @@ class rule_form extends \moodleform {
         return $options;
     }
 
+    /**
+     * The "Apply logo" select's options.
+     *
+     * @return array<string, string> Value => label, every real logo plus a "don't change" choice.
+     */
     private function logo_options(): array {
         $options = ['0' => get_string('form_logo_none', 'local_themerules')];
         foreach ((new logo_repository())->get_all_records_ordered() as $logo) {
@@ -114,6 +128,13 @@ class rule_form extends \moodleform {
         return $options;
     }
 
+    /**
+     * Server-side validation, delegating the rule-specific checks to rule_validator.
+     *
+     * @param array $data
+     * @param array $files
+     * @return array<string, string>
+     */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 

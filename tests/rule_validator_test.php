@@ -26,16 +26,24 @@ namespace local_themerules;
 
 use local_themerules\local\validation\rule_validator;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(rule_validator::class)]
 /**
  * Unit tests for rule_validator.
+ *
+ * @covers \local_themerules\local\validation\rule_validator
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(rule_validator::class)]
 final class rule_validator_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
     }
 
+    /**
+     * A minimal valid rule_validator::validate() submission array.
+     *
+     * @param array $overrides
+     * @return array
+     */
     private function valid_data(array $overrides = []): array {
         return array_merge([
             'name' => 'My rule',
@@ -45,6 +53,11 @@ final class rule_validator_test extends \advanced_testcase {
         ], $overrides);
     }
 
+    /**
+     * Inserts a minimal logo_repository row directly, for tests that only need a real logoid.
+     *
+     * @return int
+     */
     private function create_logo(): int {
         global $DB;
 

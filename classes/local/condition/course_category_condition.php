@@ -34,14 +34,25 @@ class course_category_condition implements condition_interface {
     /** @var string[] Operators this condition currently accepts. */
     const OPERATORS = ['in_category'];
 
+    /**
+     * Human-readable name for this condition (course category membership), shown in the editor's condition dropdown.
+     */
     public function get_name(): string {
         return get_string('condition_coursecategory', 'local_themerules');
     }
 
+    /**
+     * Identifier used in expression JSON, e.g. {"condition": "..."}.
+     */
     public function get_identifier(): string {
         return 'coursecategory';
     }
 
+    /**
+     * Validates a condition node's operator/value, throwing on error.
+     *
+     * @param array $config
+     */
     public function validate(array $config): void {
         if (!in_array($config['operator'] ?? null, self::OPERATORS, true)) {
             throw new \coding_exception('local_themerules: unknown operator for coursecategory condition: ' .
@@ -55,6 +66,12 @@ class course_category_condition implements condition_interface {
         }
     }
 
+    /**
+     * Whether this condition (course category membership) holds for the given facts.
+     *
+     * @param array $config
+     * @param evaluation_context $context
+     */
     public function evaluate(array $config, evaluation_context $context): bool {
         if ($context->get_coursecategoryid() === null) {
             // No real course/category known for this request yet (DECISIONS.md "Phase 2").
@@ -70,6 +87,11 @@ class course_category_condition implements condition_interface {
         return $context->get_coursecategoryid() === $target;
     }
 
+    /**
+     * Editor schema consumed by the JS rule builder.
+     *
+     * @return array
+     */
     public function get_editor_schema(): array {
         return [
             'identifier' => $this->get_identifier(),

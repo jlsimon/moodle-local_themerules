@@ -28,15 +28,28 @@ namespace local_themerules\event;
  * Event triggered when an administrator creates a theme rule.
  */
 class rule_created extends rule_event_base {
+    /**
+     * Sets crud/edulevel for this event.
+     */
     protected function init(): void {
         parent::init();
         $this->data['crud'] = 'c';
     }
 
+    /**
+     * Human-readable event name shown in the event log.
+     *
+     * @return string
+     */
     public static function get_name(): string {
         return get_string('event_rule_created', 'local_themerules');
     }
 
+    /**
+     * Human-readable log line for this specific event instance.
+     *
+     * @return string
+     */
     public function get_description(): string {
         return "The user with id '{$this->userid}' created the theme rule " .
             "'{$this->other['rulename']}' (id '{$this->objectid}').";

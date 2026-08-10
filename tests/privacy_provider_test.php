@@ -26,10 +26,12 @@ namespace local_themerules;
 
 use local_themerules\privacy\provider;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(provider::class)]
 /**
  * SPECIFICATIONS.md section 33.
+ *
+ * @covers \local_themerules\privacy\provider
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(provider::class)]
 final class privacy_provider_test extends \advanced_testcase {
     public function test_is_a_null_provider(): void {
         $this->assertInstanceOf(\core_privacy\local\metadata\null_provider::class, new provider());

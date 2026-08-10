@@ -26,10 +26,12 @@ namespace local_themerules;
 
 use local_themerules\local\engine\expression_parser;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(expression_parser::class)]
 /**
  * Unit tests for expression_parser.
+ *
+ * @covers \local_themerules\local\engine\expression_parser
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(expression_parser::class)]
 final class validation_test extends \advanced_testcase {
     public function test_parses_valid_expression(): void {
         $json = json_encode(['type' => 'condition', 'condition' => 'user', 'operator' => 'is', 'value' => 5]);

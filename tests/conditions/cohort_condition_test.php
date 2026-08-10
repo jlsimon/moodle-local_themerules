@@ -27,10 +27,12 @@ namespace local_themerules;
 use local_themerules\local\condition\cohort_condition;
 use local_themerules\local\engine\evaluation_context;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(cohort_condition::class)]
 /**
  * Unit tests for cohort_condition.
+ *
+ * @covers \local_themerules\local\condition\cohort_condition
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(cohort_condition::class)]
 final class cohort_condition_test extends \advanced_testcase {
     public function test_member_matches(): void {
         $condition = new cohort_condition();

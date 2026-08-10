@@ -26,10 +26,12 @@ namespace local_themerules;
 
 use local_themerules\local\repository\logo_repository;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(logo_repository::class)]
 /**
  * Unit tests for logo_repository.
+ *
+ * @covers \local_themerules\local\repository\logo_repository
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(logo_repository::class)]
 final class logo_repository_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
@@ -40,6 +42,7 @@ final class logo_repository_test extends \advanced_testcase {
     /**
      * Creates a draft-area file, as if the admin had just picked one in the filemanager element.
      *
+     * @param string $filename
      * @return int The draft area itemid containing exactly that one uploaded file.
      */
     private function create_draft_file(string $filename = 'test.png'): int {

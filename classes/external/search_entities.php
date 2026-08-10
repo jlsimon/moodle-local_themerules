@@ -60,6 +60,9 @@ class search_entities extends external_api {
     /**
      * Searches for entities of the given type matching the query.
      *
+     * @param string $entitytype
+     * @param string $query
+     * @param int $courseid
      * @return array{value: int, label: string}[]
      */
     public static function execute(string $entitytype, string $query = '', int $courseid = 0): array {

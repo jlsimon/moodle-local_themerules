@@ -37,6 +37,11 @@ namespace local_themerules\local\engine;
  * as it was before the `logo` action existed, since it now governs more than one axis.
  */
 class session_resolution {
+    /**
+     * Resolves every axis for the given facts and writes the results into $SESSION.
+     *
+     * @param evaluation_context $context
+     */
     public static function apply(evaluation_context $context): void {
         global $SESSION;
 

@@ -93,6 +93,10 @@ class rule_validator {
      * (even when only one axis is set), the canonical shape going forward - see resolver.php's
      * decode_actions() for why the single-object shape from before the `logo` action existed is
      * still accepted when reading, just never written by this method anymore.
+     *
+     * @param string $theme
+     * @param int|null $logoid
+     * @return string
      */
     public static function build_action_json(string $theme, ?int $logoid = null): string {
         $actions = [];
@@ -110,6 +114,9 @@ class rule_validator {
     /**
      * Extracts the plain theme name back out of an actionjson value, for prefilling the form.
      * Accepts both the legacy single-object shape and the current list shape.
+     *
+     * @param string $actionjson
+     * @return string
      */
     public static function extract_theme(string $actionjson): string {
         foreach (self::decode_actions($actionjson) as $action) {
@@ -123,6 +130,9 @@ class rule_validator {
 
     /**
      * Extracts the logo asset id back out of an actionjson value, for prefilling the form.
+     *
+     * @param string $actionjson
+     * @return int|null
      */
     public static function extract_logoid(string $actionjson): ?int {
         foreach (self::decode_actions($actionjson) as $action) {
@@ -137,6 +147,7 @@ class rule_validator {
     /**
      * Decodes a rule's actionjson into a list of action nodes.
      *
+     * @param string $actionjson
      * @return array[] Action nodes, tolerating both the legacy single-object shape and the
      *         current list shape (same tolerance as resolver.php's decode_actions() - kept as a
      *         separate small copy here rather than shared, since this class only ever reads a

@@ -26,10 +26,12 @@ namespace local_themerules;
 
 use local_themerules\local\entity\entity_search;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(entity_search::class)]
 /**
  * Unit tests for entity_search.
+ *
+ * @covers \local_themerules\local\entity\entity_search
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(entity_search::class)]
 final class entity_search_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();

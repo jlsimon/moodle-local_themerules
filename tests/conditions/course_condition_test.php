@@ -27,10 +27,12 @@ namespace local_themerules;
 use local_themerules\local\condition\course_condition;
 use local_themerules\local\engine\evaluation_context;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(course_condition::class)]
 /**
  * Unit tests for course_condition.
+ *
+ * @covers \local_themerules\local\condition\course_condition
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(course_condition::class)]
 final class course_condition_test extends \advanced_testcase {
     public function test_evaluate_matches_same_course(): void {
         $condition = new course_condition();

@@ -26,10 +26,12 @@ namespace local_themerules;
 
 use local_themerules\local\repository\rule_repository;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(rule_repository::class)]
 /**
  * Unit tests for rule_repository.
+ *
+ * @covers \local_themerules\local\repository\rule_repository
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(rule_repository::class)]
 final class rule_repository_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
@@ -37,6 +39,12 @@ final class rule_repository_test extends \advanced_testcase {
         $this->setAdminUser();
     }
 
+    /**
+     * A minimal valid local_themerules_rule record, for rule_repository::create()/update().
+     *
+     * @param array $overrides
+     * @return \stdClass
+     */
     private function sample_record(array $overrides = []): \stdClass {
         return (object) array_merge([
             'name' => 'Sample rule',

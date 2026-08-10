@@ -44,10 +44,22 @@ class condition_registry {
         'profilefield' => profile_field_condition::class,
     ];
 
+    /**
+     * Whether the given identifier has a registered condition implementation.
+     *
+     * @param string $identifier
+     * @return bool
+     */
     public static function has(string $identifier): bool {
         return isset(self::CONDITIONS[$identifier]);
     }
 
+    /**
+     * The condition implementation for the given identifier.
+     *
+     * @param string $identifier
+     * @return condition_interface
+     */
     public static function get(string $identifier): condition_interface {
         if (!self::has($identifier)) {
             throw new \coding_exception('local_themerules: unknown condition identifier: ' . $identifier);

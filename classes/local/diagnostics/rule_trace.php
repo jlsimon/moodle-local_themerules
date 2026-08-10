@@ -29,12 +29,15 @@ namespace local_themerules\local\diagnostics;
  * Authorized administrators only - never exposed to unauthorized users.
  */
 class rule_trace {
+    /** @var int */
     public int $ruleid;
+    /** @var string */
     public string $rulename;
 
-    /** 1-indexed position in the evaluation order (list position, not a stored value - see DECISIONS.md). */
+    /** @var int 1-indexed position in the evaluation order (list position, not a stored value - see DECISIONS.md). */
     public int $position;
 
+    /** @var bool */
     public bool $matched;
 
     /** @var array{text: string, result: bool}[] Flattened per-condition checks, in tree order. */
@@ -46,6 +49,17 @@ class rule_trace {
     /** @var string|null The logo name this rule would apply, if it matched and won that axis; null otherwise. */
     public ?string $logo;
 
+    /**
+     * Assembles one rule's trace.
+     *
+     * @param int $ruleid
+     * @param string $rulename
+     * @param int $position
+     * @param bool $matched
+     * @param array $conditionlines
+     * @param string|null $theme
+     * @param string|null $logo
+     */
     public function __construct(
         int $ruleid,
         string $rulename,

@@ -33,14 +33,25 @@ class course_condition implements condition_interface {
     /** @var string[] Operators this condition currently accepts. */
     const OPERATORS = ['is'];
 
+    /**
+     * Human-readable name for this condition (the current course), shown in the editor's condition dropdown.
+     */
     public function get_name(): string {
         return get_string('condition_course', 'local_themerules');
     }
 
+    /**
+     * Identifier used in expression JSON, e.g. {"condition": "..."}.
+     */
     public function get_identifier(): string {
         return 'course';
     }
 
+    /**
+     * Validates a condition node's operator/value, throwing on error.
+     *
+     * @param array $config
+     */
     public function validate(array $config): void {
         if (!in_array($config['operator'] ?? null, self::OPERATORS, true)) {
             throw new \coding_exception('local_themerules: unknown operator for course condition: ' .
@@ -51,6 +62,12 @@ class course_condition implements condition_interface {
         }
     }
 
+    /**
+     * Whether this condition (the current course) holds for the given facts.
+     *
+     * @param array $config
+     * @param evaluation_context $context
+     */
     public function evaluate(array $config, evaluation_context $context): bool {
         if ($context->get_courseid() === null) {
             // No real course known for this request yet (SPECIFICATIONS.md section 11 / DECISIONS.md "Phase 2").
@@ -60,6 +77,11 @@ class course_condition implements condition_interface {
         return $context->get_courseid() === (int) $config['value'];
     }
 
+    /**
+     * Editor schema consumed by the JS rule builder.
+     *
+     * @return array
+     */
     public function get_editor_schema(): array {
         return [
             'identifier' => $this->get_identifier(),

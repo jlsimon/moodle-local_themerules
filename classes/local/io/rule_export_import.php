@@ -53,6 +53,7 @@ class rule_export_import {
     /**
      * Builds the exportable structure for every rule on this site, in evaluation order.
      *
+     * @param rule_repository $repository
      * @return array{format: int, rules: array[]}
      */
     public static function export_all(rule_repository $repository): array {
@@ -84,6 +85,7 @@ class rule_export_import {
      *        exactly the boundary SPECIFICATIONS.md section 24 means by "never trust
      *        browser/file-provided JSON without server-side validation": the shape itself is
      *        unverified until this method checks it.
+     * @param rule_repository $repository
      * @return array{imported: int, total: int, errors: array{index: int, name: string, message: string}[]}
      */
     public static function import($data, rule_repository $repository): array {

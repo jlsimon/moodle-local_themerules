@@ -27,10 +27,12 @@ namespace local_themerules;
 use local_themerules\local\condition\device_condition;
 use local_themerules\local\engine\evaluation_context;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(device_condition::class)]
 /**
  * Unit tests for device_condition.
+ *
+ * @covers \local_themerules\local\condition\device_condition
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(device_condition::class)]
 final class device_condition_test extends \advanced_testcase {
     public function test_is_matches(): void {
         $condition = new device_condition();

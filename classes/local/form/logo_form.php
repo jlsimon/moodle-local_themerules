@@ -52,6 +52,9 @@ class logo_form extends \moodleform {
         ];
     }
 
+    /**
+     * Builds the form: name text field plus the single-image filemanager.
+     */
     public function definition() {
         $mform = $this->_form;
 

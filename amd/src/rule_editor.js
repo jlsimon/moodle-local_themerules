@@ -38,7 +38,7 @@
  */
 define(['core/ajax'], function(Ajax) {
 
-    var DEFAULT_CONDITION_NODE = function(schema) {
+    var defaultConditionNode = function(schema) {
         var node = {
             type: 'condition',
             condition: schema.identifier,
@@ -49,14 +49,14 @@ define(['core/ajax'], function(Ajax) {
         return node;
     };
 
-    var DEFAULT_GROUP_NODE = function() {
+    var defaultGroupNode = function() {
         return {type: 'group', operator: 'and', children: []};
     };
 
     /**
      * Conditions with a "field" selector (e.g. profilefield's standard-vs-custom user profile
      * field picker) need node.field/node.customfield seeded to the first option, the same way
-     * DEFAULT_CONDITION_NODE seeds operator/value - shared here since this runs both when a
+     * defaultConditionNode seeds operator/value - shared here since this runs both when a
      * brand new condition node is created and when an existing node's condition type is
      * switched to one that has fieldoptions (renderCondition()'s conditionSelect handler).
      *
@@ -102,14 +102,20 @@ define(['core/ajax'], function(Ajax) {
 
     /**
      * @param {string} textareaId DOM id of the expressionjson textarea.
-     * @param {Array} conditionSchemas from condition_registry::get_all_editor_schemas().
+     * @param {string} schemasElementId DOM id of the <script type="application/json"> element
+     *        holding condition_registry::get_all_editor_schemas() - embedded in the page rather
+     *        than passed as a js_call_amd() argument, since that payload is easily over the
+     *        1024-character threshold core warns about once real site data (every cohort/
+     *        category/custom field...) is included; see edit.php for where it's rendered.
      * @param {Object} strings UI labels, see edit.php for the exact keys passed.
      */
-    var init = function(textareaId, conditionSchemas, strings) {
+    var init = function(textareaId, schemasElementId, strings) {
         var textarea = document.getElementById(textareaId);
-        if (!textarea) {
+        var schemasElement = document.getElementById(schemasElementId);
+        if (!textarea || !schemasElement) {
             return;
         }
+        var conditionSchemas = JSON.parse(schemasElement.textContent);
 
         var schemasByIdentifier = {};
         conditionSchemas.forEach(function(schema) {
@@ -145,8 +151,8 @@ define(['core/ajax'], function(Ajax) {
                 return parsed;
             }
             var conditionNode = (parsed && parsed.type === 'condition') ?
-                parsed : DEFAULT_CONDITION_NODE(conditionSchemas[0]);
-            var group = DEFAULT_GROUP_NODE();
+                parsed : defaultConditionNode(conditionSchemas[0]);
+            var group = defaultGroupNode();
             group.children.push(conditionNode);
             return group;
         }
@@ -256,11 +262,11 @@ define(['core/ajax'], function(Ajax) {
             var addRow = document.createElement('div');
             addRow.className = 'local-themerules-add-row d-flex gap-2 mt-1';
             addRow.appendChild(makeButton(strings.addcondition, 'btn-outline-secondary', function() {
-                node.children.push(DEFAULT_CONDITION_NODE(conditionSchemas[0]));
+                node.children.push(defaultConditionNode(conditionSchemas[0]));
                 render();
             }));
             addRow.appendChild(makeButton(strings.addgroup, 'btn-outline-secondary', function() {
-                node.children.push(DEFAULT_GROUP_NODE());
+                node.children.push(defaultGroupNode());
                 render();
             }));
             wrapper.appendChild(addRow);
@@ -486,10 +492,10 @@ define(['core/ajax'], function(Ajax) {
          * @param {string} initialLabel What to show in the box before any new selection is made
          *        - the resolved label for an existing saved value, or '' for a brand new/empty
          *        condition node.
-         * @param {Function} onCommit(value, label) called with the chosen id and its display
-         *        label when the admin picks a result - the caller decides what to do with it
-         *        (store on node.value and sync(), or something else, e.g. the cascade's course
-         *        leg stores it in a side map and triggers a full render() instead).
+         * @param {Function} onCommit Called as onCommit(value, label) with the chosen id and its
+         *        display label when the admin picks a result - the caller decides what to do
+         *        with it (store on node.value and sync(), or something else, e.g. the cascade's
+         *        course leg stores it in a side map and triggers a full render() instead).
          * @return {HTMLElement}
          */
         function renderEntityPicker(entitytype, zeroLabel, scopeCourseId, initialLabel, onCommit) {
@@ -521,17 +527,33 @@ define(['core/ajax'], function(Ajax) {
             input.disabled = disabled;
             input.placeholder = disabled ? strings.choosecourse : strings.searchplaceholder;
 
+            /**
+             * Hides and clears the results dropdown.
+             */
             function closeDropdown() {
                 dropdown.style.display = 'none';
                 dropdown.textContent = '';
             }
 
+            /**
+             * Commits a chosen search result: updates the box's displayed text and hands the
+             * value/label off to the caller via onCommit.
+             *
+             * @param {Object} result {value, label}
+             */
             function selectResult(result) {
                 input.value = result.label;
                 closeDropdown();
                 onCommit(result.value, result.label);
             }
 
+            /**
+             * Renders a fetched result list into the dropdown, prefixing the synthetic
+             * zero-label choice (if this picker has one) and showing a "no results" row when
+             * empty.
+             *
+             * @param {Array} results {value, label} pairs from entityRepository.search().
+             */
             function renderResults(results) {
                 dropdown.textContent = '';
                 var items = results.slice();
@@ -550,7 +572,7 @@ define(['core/ajax'], function(Ajax) {
                         item.style.cursor = 'pointer';
                         item.textContent = result.label;
                         item.addEventListener('mousedown', function(event) {
-                            // mousedown (not click) fires before the input's blur handler closes
+                            // Mousedown (not click) fires before the input's blur handler closes
                             // the dropdown, so the click still lands on the intended item.
                             event.preventDefault();
                             selectResult(result);
@@ -561,6 +583,11 @@ define(['core/ajax'], function(Ajax) {
                 dropdown.style.display = 'block';
             }
 
+            /**
+             * Shows a loading placeholder, then fetches and renders matches for the given query.
+             *
+             * @param {string} query
+             */
             function search(query) {
                 dropdown.textContent = '';
                 var loading = document.createElement('li');

@@ -33,14 +33,25 @@ class cohort_condition implements condition_interface {
     /** @var string[] Operators this condition currently accepts. */
     const OPERATORS = ['member', 'not_member'];
 
+    /**
+     * Human-readable name for this condition (cohort membership), shown in the editor's condition dropdown.
+     */
     public function get_name(): string {
         return get_string('condition_cohort', 'local_themerules');
     }
 
+    /**
+     * Identifier used in expression JSON, e.g. {"condition": "..."}.
+     */
     public function get_identifier(): string {
         return 'cohort';
     }
 
+    /**
+     * Validates a condition node's operator/value, throwing on error.
+     *
+     * @param array $config
+     */
     public function validate(array $config): void {
         if (!in_array($config['operator'] ?? null, self::OPERATORS, true)) {
             throw new \coding_exception('local_themerules: unknown operator for cohort condition: ' .
@@ -51,12 +62,23 @@ class cohort_condition implements condition_interface {
         }
     }
 
+    /**
+     * Whether this condition (cohort membership) holds for the given facts.
+     *
+     * @param array $config
+     * @param evaluation_context $context
+     */
     public function evaluate(array $config, evaluation_context $context): bool {
         $ismember = in_array((int) $config['value'], $context->get_cohortids(), true);
 
         return $config['operator'] === 'member' ? $ismember : !$ismember;
     }
 
+    /**
+     * Editor schema consumed by the JS rule builder.
+     *
+     * @return array
+     */
     public function get_editor_schema(): array {
         return [
             'identifier' => $this->get_identifier(),

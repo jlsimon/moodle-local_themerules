@@ -27,10 +27,12 @@ namespace local_themerules;
 use local_themerules\local\condition\profile_field_condition;
 use local_themerules\local\engine\evaluation_context;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(profile_field_condition::class)]
 /**
  * Unit tests for profile_field_condition.
+ *
+ * @covers \local_themerules\local\condition\profile_field_condition
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(profile_field_condition::class)]
 final class profile_field_condition_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();

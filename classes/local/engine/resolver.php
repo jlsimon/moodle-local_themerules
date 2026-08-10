@@ -38,6 +38,8 @@ class resolver {
     /**
      * Resolves every axis at once.
      *
+     * @param evaluation_context $context
+     * @param rule_repository|null $repository
      * @return array<string, string> Axis identifier (action_interface::get_identifier(), e.g.
      *         "theme"/"logo") => resolved value. An axis with no matching rule, or where every
      *         matching rule's action for it declined (SPECIFICATIONS.md section 18), is simply
@@ -95,6 +97,10 @@ class resolver {
 
     /**
      * Convenience wrapper for the (still by far the most common) theme-only case.
+     *
+     * @param evaluation_context $context
+     * @param rule_repository|null $repository
+     * @return string|null
      */
     public static function resolve_theme(evaluation_context $context, ?rule_repository $repository = null): ?string {
         return self::resolve($context, $repository)['theme'] ?? null;
@@ -106,6 +112,7 @@ class resolver {
      * theme-only rule never needs the list form) or a list of action nodes (needed once a rule
      * sets more than one axis, e.g. theme + logo together).
      *
+     * @param string $actionjson
      * @return array[] Action nodes, each with at least a "type" key.
      */
     private static function decode_actions(string $actionjson): array {

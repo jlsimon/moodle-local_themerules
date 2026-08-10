@@ -27,16 +27,23 @@ namespace local_themerules;
 use local_themerules\local\action\logo_action;
 use local_themerules\local\engine\evaluation_context;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(logo_action::class)]
 /**
  * Unit tests for logo_action.
+ *
+ * @covers \local_themerules\local\action\logo_action
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(logo_action::class)]
 final class logo_action_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
     }
 
+    /**
+     * Inserts a minimal logo_repository row directly, for tests that only need a real logoid.
+     *
+     * @return int
+     */
     private function create_logo(): int {
         global $DB;
 

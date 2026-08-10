@@ -26,10 +26,12 @@ namespace local_themerules;
 
 use local_themerules\external\resolve_entity;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(resolve_entity::class)]
 /**
  * End-to-end tests for the resolve_entity AJAX external function.
+ *
+ * @covers \local_themerules\external\resolve_entity
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(resolve_entity::class)]
 final class resolve_entity_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();

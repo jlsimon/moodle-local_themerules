@@ -27,10 +27,12 @@ namespace local_themerules;
 use local_themerules\local\condition\course_tag_condition;
 use local_themerules\local\engine\evaluation_context;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(course_tag_condition::class)]
 /**
  * Unit tests for course_tag_condition.
+ *
+ * @covers \local_themerules\local\condition\course_tag_condition
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(course_tag_condition::class)]
 final class course_tag_condition_test extends \advanced_testcase {
     public function test_has_matches(): void {
         $condition = new course_tag_condition();

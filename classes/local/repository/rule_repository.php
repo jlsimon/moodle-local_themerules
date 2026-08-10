@@ -67,6 +67,8 @@ class rule_repository {
     /**
      * Fetches a single rule's raw DB record.
      *
+     * @param int $id
+     * @return \stdClass
      * @throws \dml_missing_record_exception if no rule has this id.
      */
     public function get_record(int $id): \stdClass {
@@ -75,6 +77,12 @@ class rule_repository {
         return $DB->get_record('local_themerules_rule', ['id' => $id], '*', MUST_EXIST);
     }
 
+    /**
+     * Creates a new rule, always appended at the end of the evaluation order.
+     *
+     * @param \stdClass $data
+     * @return int The new rule's id.
+     */
     public function create(\stdClass $data): int {
         global $DB, $USER;
 
@@ -99,6 +107,12 @@ class rule_repository {
         return $id;
     }
 
+    /**
+     * Updates an existing rule in place (sortorder is untouched - see move_up()/move_down()).
+     *
+     * @param int $id
+     * @param \stdClass $data
+     */
     public function update(int $id, \stdClass $data): void {
         global $DB, $USER;
 
@@ -116,6 +130,11 @@ class rule_repository {
         ])->trigger();
     }
 
+    /**
+     * Permanently deletes a rule.
+     *
+     * @param int $id
+     */
     public function delete(int $id): void {
         global $DB;
 
@@ -131,6 +150,12 @@ class rule_repository {
         ])->trigger();
     }
 
+    /**
+     * Enables or disables a rule.
+     *
+     * @param int $id
+     * @param bool $enabled
+     */
     public function set_enabled(int $id, bool $enabled): void {
         global $DB, $USER;
 
@@ -156,6 +181,7 @@ class rule_repository {
      * Duplicates a rule, disabled by default so duplicating never silently
      * doubles an active rule's effect.
      *
+     * @param int $id
      * @return int The new rule's id.
      */
     public function duplicate(int $id): int {
@@ -172,6 +198,8 @@ class rule_repository {
     /**
      * Moves a rule one position earlier in the evaluation order (swaps sortorder with its
      * immediate predecessor). A no-op if the rule is already first, or does not exist.
+     *
+     * @param int $id
      */
     public function move_up(int $id): void {
         $this->swap_with_neighbour($id, -1);
@@ -180,6 +208,8 @@ class rule_repository {
     /**
      * Moves a rule one position later in the evaluation order. A no-op if the rule is already
      * last, or does not exist.
+     *
+     * @param int $id
      */
     public function move_down(int $id): void {
         $this->swap_with_neighbour($id, 1);
@@ -191,6 +221,9 @@ class rule_repository {
      * on sortorder directly, so this stays correct even if sortorder values ever have gaps or
      * (briefly, mid-migration) duplicates - list *position* is always well-defined, raw sortorder
      * values are only ever a means to encode it.
+     *
+     * @param int $id
+     * @param int $offset
      */
     private function swap_with_neighbour(int $id, int $offset): void {
         global $DB;

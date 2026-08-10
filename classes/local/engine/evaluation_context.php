@@ -34,8 +34,11 @@ namespace local_themerules\local\engine;
  * conditions simply cannot match, while user/cohort conditions still can.
  */
 class evaluation_context {
+    /** @var int 0 = anonymous, not-logged-in visitor - a real, resolvable fact, not a missing one. */
     private int $userid;
+    /** @var int|null Null when no real course is known yet for this request. */
     private ?int $courseid;
+    /** @var int|null Null when no real course is known yet for this request. */
     private ?int $coursecategoryid;
 
     /** @var int[] Category id and all its ancestors, root first, e.g. [1, 5, 12]. */
@@ -44,7 +47,7 @@ class evaluation_context {
     /** @var int[] */
     private array $cohortids;
 
-    /** One of \core_useragent::DEVICETYPE_* - unlike the other facts, always resolvable. */
+    /** @var string One of \core_useragent::DEVICETYPE_* - unlike the other facts, always resolvable. */
     private string $devicetype;
 
     /** @var string[] Normalized (\core_tag_tag::normalize()) names of the course's tags. */
@@ -53,6 +56,18 @@ class evaluation_context {
     /** @var int[] Ids of the groups the user belongs to, within the current course. */
     private array $coursegroupids;
 
+    /**
+     * Builds an immutable fact bag for one condition evaluation.
+     *
+     * @param int $userid
+     * @param int|null $courseid
+     * @param int|null $coursecategoryid
+     * @param int[] $coursecategorypath
+     * @param int[] $cohortids
+     * @param string $devicetype
+     * @param string[] $coursetags
+     * @param int[] $coursegroupids
+     */
     public function __construct(
         int $userid,
         ?int $courseid = null,
@@ -73,14 +88,29 @@ class evaluation_context {
         $this->coursegroupids = $coursegroupids;
     }
 
+    /**
+     * The current user's id.
+     *
+     * @return int 0 = anonymous, not-logged-in visitor.
+     */
     public function get_userid(): int {
         return $this->userid;
     }
 
+    /**
+     * The current course's id.
+     *
+     * @return int|null Null when no real course is known yet for this request.
+     */
     public function get_courseid(): ?int {
         return $this->courseid;
     }
 
+    /**
+     * The current course's own category id (not an ancestor - see get_coursecategorypath()).
+     *
+     * @return int|null Null when no real course is known yet for this request.
+     */
     public function get_coursecategoryid(): ?int {
         return $this->coursecategoryid;
     }

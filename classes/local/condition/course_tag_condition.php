@@ -42,14 +42,25 @@ class course_tag_condition implements condition_interface {
     /** @var string[] Operators this condition currently accepts. */
     const OPERATORS = ['has', 'not_has'];
 
+    /**
+     * Human-readable name for this condition (course tags), shown in the editor's condition dropdown.
+     */
     public function get_name(): string {
         return get_string('condition_coursetag', 'local_themerules');
     }
 
+    /**
+     * Identifier used in expression JSON, e.g. {"condition": "..."}.
+     */
     public function get_identifier(): string {
         return 'coursetag';
     }
 
+    /**
+     * Validates a condition node's operator/value, throwing on error.
+     *
+     * @param array $config
+     */
     public function validate(array $config): void {
         if (!in_array($config['operator'] ?? null, self::OPERATORS, true)) {
             throw new \coding_exception('local_themerules: unknown operator for coursetag condition: ' .
@@ -60,6 +71,12 @@ class course_tag_condition implements condition_interface {
         }
     }
 
+    /**
+     * Whether this condition (course tags) holds for the given facts.
+     *
+     * @param array $config
+     * @param evaluation_context $context
+     */
     public function evaluate(array $config, evaluation_context $context): bool {
         if ($context->get_courseid() === null) {
             // No real course known for this request yet (SPECIFICATIONS.md section 11 / DECISIONS.md "Phase 2").
@@ -72,6 +89,11 @@ class course_tag_condition implements condition_interface {
         return $config['operator'] === 'has' ? $has : !$has;
     }
 
+    /**
+     * Editor schema consumed by the JS rule builder.
+     *
+     * @return array
+     */
     public function get_editor_schema(): array {
         return [
             'identifier' => $this->get_identifier(),
@@ -84,6 +106,9 @@ class course_tag_condition implements condition_interface {
     /**
      * Normalizes a raw tag name the same way \core_tag_tag does, so admin-typed values match
      * regardless of case/whitespace/punctuation differences from how the tag was actually created.
+     *
+     * @param string $rawtag
+     * @return string
      */
     public static function normalize_tag(string $rawtag): string {
         $normalized = \core_tag_tag::normalize([$rawtag]);

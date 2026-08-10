@@ -54,6 +54,8 @@ class resolve_entity extends external_api {
     /**
      * Resolves one entity id to a label (and, for "coursegroup", its owning course).
      *
+     * @param string $entitytype
+     * @param int $id
      * @return array{found: bool, value: int, label: string, courseid: int, coursename: string}
      */
     public static function execute(string $entitytype, int $id): array {

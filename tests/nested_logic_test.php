@@ -28,14 +28,17 @@ use local_themerules\local\engine\evaluation_context;
 use local_themerules\local\engine\evaluator;
 use local_themerules\local\engine\expression_parser;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(evaluator::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(expression_parser::class)]
 /**
  * Phase 3 (SPECIFICATIONS.md section 63): nested AND/OR groups must evaluate
  * correctly for every truth-table combination, and expression_parser's safety
  * limits (section 17: max nesting depth 10, max nodes 100) must hold exactly
  * at the boundary.
+ *
+ * @covers \local_themerules\local\engine\evaluator
+ * @covers \local_themerules\local\engine\expression_parser
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(evaluator::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(expression_parser::class)]
 final class nested_logic_test extends \advanced_testcase {
     /**
      * SPECIFICATIONS.md section 63/72: category = FUNDAE AND (cohort A OR cohort B).
@@ -50,6 +53,14 @@ final class nested_logic_test extends \advanced_testcase {
         ]];
     }
 
+    /**
+     * An evaluation_context matching (or not) the canonical_expression()'s three atoms.
+     *
+     * @param bool $incategory
+     * @param bool $incohorta
+     * @param bool $incohortb
+     * @return evaluation_context
+     */
     private function context_for(bool $incategory, bool $incohorta, bool $incohortb): evaluation_context {
         $cohortids = [];
         if ($incohorta) {
@@ -94,6 +105,9 @@ final class nested_logic_test extends \advanced_testcase {
 
     /**
      * Builds a chain of $levels nested "and" groups around a single leaf condition.
+     *
+     * @param int $levels
+     * @return array
      */
     private function nested_group(int $levels): array {
         $node = ['type' => 'condition', 'condition' => 'user', 'operator' => 'is', 'value' => 5];
@@ -144,6 +158,12 @@ final class nested_logic_test extends \advanced_testcase {
         (new expression_parser())->parse($json);
     }
 
+    /**
+     * A single "or" group with $childrencount leaf conditions.
+     *
+     * @param int $childrencount
+     * @return array
+     */
     private function flat_or_group(int $childrencount): array {
         $children = [];
         for ($i = 0; $i < $childrencount; $i++) {

@@ -53,6 +53,7 @@ interface condition_interface {
      * Whether this condition holds for the given facts.
      *
      * @param array $config The condition node (type, condition, operator, value, ...).
+     * @param evaluation_context $context
      */
     public function evaluate(array $config, evaluation_context $context): bool;
 

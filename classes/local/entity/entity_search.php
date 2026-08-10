@@ -52,6 +52,9 @@ class entity_search {
      * Searches for entities of the given type matching a free-text query. An empty query returns
      * the first page ordered alphabetically, so the picker is browsable, not just searchable.
      *
+     * @param string $entitytype
+     * @param string $query
+     * @param int $courseid
      * @return array{value: int, label: string}[]
      */
     public static function search(string $entitytype, string $query, int $courseid = 0): array {
@@ -75,6 +78,8 @@ class entity_search {
      * existing value is opened for editing. Returns null if the entity no longer exists (a
      * deleted user/course/group a rule still references - SPECIFICATIONS.md section 50).
      *
+     * @param string $entitytype
+     * @param int $id
      * @return array{value: int, label: string, courseid?: int, coursename?: string}|null
      */
     public static function resolve(string $entitytype, int $id): ?array {
@@ -111,6 +116,7 @@ class entity_search {
     /**
      * Matches on firstname/lastname/email.
      *
+     * @param string $query
      * @return array{value: int, label: string}[]
      */
     private static function search_users(string $query): array {
@@ -147,6 +153,7 @@ class entity_search {
     /**
      * Matches on fullname/shortname, excluding the site course.
      *
+     * @param string $query
      * @return array{value: int, label: string}[]
      */
     private static function search_courses(string $query): array {
@@ -183,6 +190,8 @@ class entity_search {
     /**
      * Matches on name, scoped to one course.
      *
+     * @param int $courseid
+     * @param string $query
      * @return array{value: int, label: string}[]
      */
     private static function search_groups(int $courseid, string $query): array {
@@ -205,14 +214,32 @@ class entity_search {
         ));
     }
 
+    /**
+     * Display label for a user search/resolve result.
+     *
+     * @param \stdClass $user
+     * @return string
+     */
     private static function user_label(\stdClass $user): string {
         return fullname($user) . " (id {$user->id})";
     }
 
+    /**
+     * Display label for a course search/resolve result.
+     *
+     * @param \stdClass $course
+     * @return string
+     */
     private static function course_label(\stdClass $course): string {
         return format_string($course->fullname) . " (id {$course->id})";
     }
 
+    /**
+     * Display label for a coursegroup search/resolve result.
+     *
+     * @param \stdClass $group
+     * @return string
+     */
     private static function group_label(\stdClass $group): string {
         return format_string($group->name) . " (id {$group->id})";
     }

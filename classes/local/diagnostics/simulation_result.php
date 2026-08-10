@@ -34,11 +34,20 @@ class simulation_result {
     /** @var rule_trace[] All enabled, time-active rules, in evaluation order. */
     public array $ruletraces;
 
+    /** @var string|null The theme that would be applied, or null. */
     public ?string $selectedtheme;
 
     /** @var string|null Display name of the logo that would be applied, or null. */
     public ?string $selectedlogo;
 
+    /**
+     * Assembles one simulation run's full output.
+     *
+     * @param array $facts
+     * @param rule_trace[] $ruletraces
+     * @param string|null $selectedtheme
+     * @param string|null $selectedlogo
+     */
     public function __construct(array $facts, array $ruletraces, ?string $selectedtheme, ?string $selectedlogo = null) {
         $this->facts = $facts;
         $this->ruletraces = $ruletraces;

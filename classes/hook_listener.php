@@ -49,6 +49,11 @@ use local_themerules\local\engine\session_resolution;
  * test platform - see DECISIONS.md.
  */
 class hook_listener {
+    /**
+     * Resolves Tier A theme/logo facts (user/cohort only, no course yet) on every request.
+     *
+     * @param \core\hook\after_config $hook
+     */
     public static function after_config(\core\hook\after_config $hook): void {
         if (CLI_SCRIPT || (defined('WS_SERVER') && WS_SERVER) || during_initial_install()) {
             return;
@@ -66,6 +71,8 @@ class hook_listener {
      * theme's navbar template renders (verified against theme/boost/templates/navbar.mustache)
      * via CSS `content: url(...)`, which swaps the displayed image without needing a renderer
      * override for every individual theme.
+     *
+     * @param \core\hook\output\before_standard_head_html_generation $hook
      */
     public static function before_standard_head_html_generation(
         \core\hook\output\before_standard_head_html_generation $hook

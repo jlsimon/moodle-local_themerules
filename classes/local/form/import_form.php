@@ -36,6 +36,9 @@ require_once($CFG->libdir . '/formslib.php');
  * logo_form.php's file_prepare_draft_area()/permanent-storage machinery.
  */
 class import_form extends \moodleform {
+    /**
+     * Builds the form: a single JSON file upload field.
+     */
     public function definition() {
         $mform = $this->_form;
 

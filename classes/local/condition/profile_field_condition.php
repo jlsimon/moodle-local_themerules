@@ -55,14 +55,25 @@ class profile_field_condition implements condition_interface {
         'institution', 'department', 'phone1', 'phone2', 'address',
     ];
 
+    /**
+     * Human-readable name for this condition (a user profile field), shown in the editor's condition dropdown.
+     */
     public function get_name(): string {
         return get_string('condition_profilefield', 'local_themerules');
     }
 
+    /**
+     * Identifier used in expression JSON, e.g. {"condition": "..."}.
+     */
     public function get_identifier(): string {
         return 'profilefield';
     }
 
+    /**
+     * Validates a condition node's operator/value, throwing on error.
+     *
+     * @param array $config
+     */
     public function validate(array $config): void {
         if (!in_array($config['operator'] ?? null, self::OPERATORS, true)) {
             throw new \coding_exception('local_themerules: unknown operator for profilefield condition: ' .
@@ -76,6 +87,12 @@ class profile_field_condition implements condition_interface {
         }
     }
 
+    /**
+     * Whether this condition (a user profile field) holds for the given facts.
+     *
+     * @param array $config
+     * @param evaluation_context $context
+     */
     public function evaluate(array $config, evaluation_context $context): bool {
         $uservalue = self::get_field_value(
             $context->get_userid(),
@@ -91,6 +108,11 @@ class profile_field_condition implements condition_interface {
         return $config['operator'] === 'is' ? $matches : !$matches;
     }
 
+    /**
+     * Editor schema consumed by the JS rule builder.
+     *
+     * @return array
+     */
     public function get_editor_schema(): array {
         return [
             'identifier' => $this->get_identifier(),
@@ -140,6 +162,11 @@ class profile_field_condition implements condition_interface {
 
     /**
      * Looks up one user's value for one profile field, standard or custom.
+     *
+     * @param int $userid
+     * @param string $field
+     * @param bool $iscustomfield
+     * @return string|null
      */
     private static function get_field_value(int $userid, string $field, bool $iscustomfield): ?string {
         global $DB, $CFG;

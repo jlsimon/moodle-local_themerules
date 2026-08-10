@@ -27,10 +27,12 @@ namespace local_themerules;
 use local_themerules\local\condition\user_condition;
 use local_themerules\local\engine\evaluation_context;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(user_condition::class)]
 /**
  * Unit tests for user_condition.
+ *
+ * @covers \local_themerules\local\condition\user_condition
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(user_condition::class)]
 final class user_condition_test extends \advanced_testcase {
     public function test_evaluate_matches_same_user(): void {
         $condition = new user_condition();

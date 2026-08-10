@@ -31,8 +31,19 @@ use local_themerules\event\rule_enabled;
 use local_themerules\event\rule_updated;
 use local_themerules\local\repository\rule_repository;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(rule_created::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(rule_updated::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(rule_deleted::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(rule_enabled::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(rule_disabled::class)]
 /**
  * SPECIFICATIONS.md section 34: rule_created/updated/deleted/enabled/disabled.
+ *
+ * @covers \local_themerules\event\rule_created
+ * @covers \local_themerules\event\rule_updated
+ * @covers \local_themerules\event\rule_deleted
+ * @covers \local_themerules\event\rule_enabled
+ * @covers \local_themerules\event\rule_disabled
  */
 final class events_test extends \advanced_testcase {
     protected function setUp(): void {
@@ -41,6 +52,12 @@ final class events_test extends \advanced_testcase {
         $this->setAdminUser();
     }
 
+    /**
+     * A minimal valid local_themerules_rule record, for rule_repository::create()/update().
+     *
+     * @param array $overrides
+     * @return \stdClass
+     */
     private function sample_record(array $overrides = []): \stdClass {
         return (object) array_merge([
             'name' => 'Event test rule',

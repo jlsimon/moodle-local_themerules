@@ -34,10 +34,22 @@ class action_registry {
         'logo' => logo_action::class,
     ];
 
+    /**
+     * Whether the given identifier has a registered action implementation.
+     *
+     * @param string $identifier
+     * @return bool
+     */
     public static function has(string $identifier): bool {
         return isset(self::ACTIONS[$identifier]);
     }
 
+    /**
+     * The action implementation for the given identifier.
+     *
+     * @param string $identifier
+     * @return action_interface
+     */
     public static function get(string $identifier): action_interface {
         if (!self::has($identifier)) {
             throw new \coding_exception('local_themerules: unknown action identifier: ' . $identifier);

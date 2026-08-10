@@ -39,6 +39,8 @@ class expression_parser {
     /**
      * Decodes and validates a rule's expression JSON into its tree form.
      *
+     * @param string $json
+     * @return array
      * @throws \coding_exception on invalid JSON or an invalid/unsafe expression tree.
      */
     public function parse(string $json): array {
@@ -54,6 +56,13 @@ class expression_parser {
         return $data;
     }
 
+    /**
+     * Recursively validates one node's shape/depth/count, throwing on the first violation.
+     *
+     * @param array $node
+     * @param int $depth
+     * @param int $nodecount Running total across the whole tree, passed by reference.
+     */
     private function validate_node(array $node, int $depth, int &$nodecount): void {
         $nodecount++;
         if ($nodecount > self::MAX_NODES) {

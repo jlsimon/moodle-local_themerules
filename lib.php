@@ -22,6 +22,17 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * Tier B: re-resolves theme/logo once a real course is known (see DECISIONS.md "Phase 2"),
+ * overriding whatever hook_listener::after_config()'s Tier A already decided with user/cohort
+ * facts only.
+ *
+ * @param stdClass|int|null $courseorid
+ * @param bool|null $autologinguest
+ * @param stdClass|null $cm
+ * @param bool|null $setwantsurltome
+ * @param bool|null $preventredirect
+ */
 function local_themerules_after_require_login(
     $courseorid = null,
     $autologinguest = null,

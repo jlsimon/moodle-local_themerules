@@ -51,6 +51,8 @@ class logo_repository {
     /**
      * Fetches a single logo's raw DB record.
      *
+     * @param int $id
+     * @return \stdClass
      * @throws \dml_missing_record_exception if no logo has this id.
      */
     public function get_record(int $id): \stdClass {
@@ -95,6 +97,7 @@ class logo_repository {
      * file that should end up stored - either the existing one, untouched, prefilled via
      * file_prepare_draft_area() (see logos.php), or a new one the admin uploaded to replace it.
      *
+     * @param int $id
      * @param string $name Admin-facing label.
      * @param int $draftitemid See create()'s $draftitemid.
      */
@@ -112,6 +115,11 @@ class logo_repository {
         ]);
     }
 
+    /**
+     * Permanently deletes a logo asset and its uploaded file.
+     *
+     * @param int $id
+     */
     public function delete(int $id): void {
         global $DB;
 
@@ -126,6 +134,8 @@ class logo_repository {
      * (component, filearea, itemid) location, replacing whatever was there before (an edit that
      * re-uploads a new image for the same logo id).
      *
+     * @param int $draftitemid
+     * @param int $logoid
      * @return string The stored file's filename.
      * @throws \moodle_exception if the draft area does not contain exactly one file.
      */

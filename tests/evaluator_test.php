@@ -27,11 +27,19 @@ namespace local_themerules;
 use local_themerules\local\engine\evaluation_context;
 use local_themerules\local\engine\evaluator;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(evaluator::class)]
 /**
  * Unit tests for evaluator.
+ *
+ * @covers \local_themerules\local\engine\evaluator
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(evaluator::class)]
 final class evaluator_test extends \advanced_testcase {
+    /**
+     * A "user is $userid" condition node.
+     *
+     * @param int $userid
+     * @return array
+     */
     private function user_node(int $userid): array {
         return ['type' => 'condition', 'condition' => 'user', 'operator' => 'is', 'value' => $userid];
     }

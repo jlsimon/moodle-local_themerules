@@ -27,16 +27,24 @@ namespace local_themerules;
 use local_themerules\local\io\rule_export_import;
 use local_themerules\local\repository\rule_repository;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(rule_export_import::class)]
 /**
  * Unit tests for rule_export_import.
+ *
+ * @covers \local_themerules\local\io\rule_export_import
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(rule_export_import::class)]
 final class rule_export_import_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
     }
 
+    /**
+     * Creates a minimal valid rule via rule_repository::create(), for export tests.
+     *
+     * @param array $overrides
+     * @return int
+     */
     private function create_rule(array $overrides = []): int {
         global $USER;
 

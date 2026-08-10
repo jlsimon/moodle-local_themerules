@@ -26,12 +26,14 @@ namespace local_themerules;
 
 use local_themerules\external\search_entities;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(search_entities::class)]
 /**
  * End-to-end tests for the search_entities AJAX external function, exercising the same
  * parameter/context/capability validation a real web service call goes through - entity_search's
  * own test suite already covers the underlying query logic in isolation.
+ *
+ * @covers \local_themerules\external\search_entities
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(search_entities::class)]
 final class search_entities_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();

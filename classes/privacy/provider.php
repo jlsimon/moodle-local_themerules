@@ -38,6 +38,11 @@ namespace local_themerules\privacy;
  * admin-facing explanation.
  */
 class provider implements \core_privacy\local\metadata\null_provider {
+    /**
+     * The lang string explaining why this plugin has no exportable/deletable user data.
+     *
+     * @return string
+     */
     public static function get_reason(): string {
         return 'privacy:metadata';
     }

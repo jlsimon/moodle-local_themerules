@@ -33,6 +33,13 @@ use local_themerules\local\condition\condition_registry;
  * are treated as a coding error here, not re-validated defensively).
  */
 class evaluator {
+    /**
+     * Recursively evaluates one expression node (a condition leaf, or an and/or group).
+     *
+     * @param array $node
+     * @param evaluation_context $context
+     * @return bool
+     */
     public function evaluate(array $node, evaluation_context $context): bool {
         $type = $node['type'] ?? null;
 
