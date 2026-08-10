@@ -62,7 +62,10 @@ unavailable.
 
 Use **Simulate** (same admin page) to check, for a given user id and
 course id, exactly which rules match, why, and which theme would be
-selected - without affecting anyone's actual session.
+selected - without affecting anyone's actual session. It also lets you
+override the device type being simulated (auto-detected from your own
+browser by default), so you can test a `device` rule as "what if this were
+a tablet" without needing an actual tablet.
 
 ### Condition identifiers
 
@@ -72,6 +75,8 @@ selected - without affecting anyone's actual session.
 | `course` | `is` | Value: a course id. |
 | `coursecategory` | `in_category` | Value: a category id. Optional `"includechildren": true` to also match descendant categories. |
 | `cohort` | `member`, `not_member` | Value: a cohort id. |
+| `device` | `is`, `is_not` | Value: one of `default`, `mobile`, `tablet`, `legacy` (matches `\core_useragent::DEVICETYPE_*`, including the user's own "view full site" override). Unlike the other conditions this is always resolvable, even before login. |
+| `coursetag` | `has`, `not_has` | Value: a tag name, e.g. `"exam-mode"`. Matched case-insensitively with leading/trailing whitespace trimmed (the same normalization Moodle itself uses for tags) - `"Exam-Mode"` and `"exam-mode "` match the same tag, but a space and a hyphen are still different characters (`"Exam Mode"` ≠ `"exam-mode"`). Only resolvable on a real course, same constraint as `course`/`coursecategory`. |
 
 Group nodes use `"operator": "and"` or `"operator": "or"` with a
 `"children"` array of further condition/group nodes, nested up to 10
@@ -83,6 +88,18 @@ Simple: a specific user always gets `boost`, regardless of anything else:
 
 ```json
 {"type": "condition", "condition": "user", "operator": "is", "value": 123}
+```
+
+Mobile visitors get a lighter theme, everyone else keeps the site default:
+
+```json
+{"type": "condition", "condition": "device", "operator": "is", "value": "mobile"}
+```
+
+Any course tagged "exam-mode" gets a distraction-free theme:
+
+```json
+{"type": "condition", "condition": "coursetag", "operator": "has", "value": "exam-mode"}
 ```
 
 Course + cohort combination:

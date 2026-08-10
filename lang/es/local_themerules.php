@@ -29,6 +29,14 @@ $string['condition_user'] = 'Usuario';
 $string['condition_course'] = 'Curso';
 $string['condition_coursecategory'] = 'Categoría de curso';
 $string['condition_cohort'] = 'Cohorte';
+$string['condition_device'] = 'Tipo de dispositivo';
+$string['condition_coursetag'] = 'Etiqueta de curso';
+
+// Device type values (shared by the condition, the simulator device selector, and traces).
+$string['device_default'] = 'Escritorio/por defecto';
+$string['device_mobile'] = 'Móvil';
+$string['device_tablet'] = 'Tablet';
+$string['device_legacy'] = 'Navegador antiguo';
 
 // Capabilities.
 $string['themerules:view'] = 'Ver reglas de tema';
@@ -69,7 +77,7 @@ $string['form_expression_help'] = 'Un árbol de condiciones lógicas en JSON. Ej
   {"type": "condition", "condition": "cohort", "operator": "member", "value": 7}
 ]}
 
-Identificadores de condición disponibles: user (operador "is"), course (operador "is"), coursecategory (operador "in_category", opcionalmente "includechildren"), cohort (operador "member" o "not_member"). Operadores de grupo: "and", "or". Un editor visual estará disponible en una futura versión.';
+Identificadores de condición disponibles: user (operador "is"), course (operador "is"), coursecategory (operador "in_category", opcionalmente "includechildren"), cohort (operador "member" o "not_member"), device (operador "is" o "is_not", valor "default", "mobile", "tablet" o "legacy"), coursetag (operador "has" o "not_has", valor el nombre de una etiqueta). Operadores de grupo: "and", "or". Un editor visual estará disponible en una futura versión.';
 $string['form_timestart'] = 'Válida desde';
 $string['form_timeend'] = 'Válida hasta';
 $string['form_save'] = 'Guardar regla';
@@ -92,7 +100,7 @@ $string['editor_removecondition'] = 'Eliminar condición';
 $string['editor_removegroup'] = 'Eliminar grupo';
 $string['editor_condition'] = 'Condición';
 $string['editor_operator'] = 'Operador';
-$string['editor_value'] = 'Valor (id)';
+$string['editor_value'] = 'Valor';
 $string['editor_includechildren'] = 'Incluir subcategorías';
 
 // Simulator.
@@ -110,6 +118,8 @@ $string['simulator_wouldselect'] = '→ seleccionaría el tema "{$a}"';
 $string['simulator_selectedtheme'] = 'Tema seleccionado';
 $string['simulator_selectedthemevalue'] = 'Se seleccionaría el tema "{$a}".';
 $string['simulator_nomatch'] = 'Ninguna regla coincide. Se aplicaría la resolución de tema normal de Moodle.';
+$string['simulator_devicetype'] = 'Tipo de dispositivo';
+$string['simulator_devicetype_auto'] = 'Detectar automáticamente (tu navegador actual)';
 
 // Trace text (simulator condition lines and facts).
 $string['trace_fact_user'] = 'Usuario';
@@ -117,6 +127,8 @@ $string['trace_fact_course'] = 'Curso';
 $string['trace_fact_category'] = 'Categoría';
 $string['trace_fact_cohorts'] = 'Cohortes';
 $string['trace_fact_none'] = 'Ninguna';
+$string['trace_fact_device'] = 'Tipo de dispositivo';
+$string['trace_fact_coursetags'] = 'Etiquetas del curso';
 $string['trace_user'] = 'El usuario es {$a}';
 $string['trace_course'] = 'El curso es {$a}';
 $string['trace_coursecategory'] = 'La categoría de curso es {$a}';
@@ -124,6 +136,12 @@ $string['trace_includingdescendants'] = '(incluyendo subcategorías)';
 $string['trace_cohort'] = 'El usuario {$a->verb} la cohorte {$a->name}';
 $string['trace_member'] = 'es miembro de';
 $string['trace_notmember'] = 'no es miembro de';
+$string['trace_device'] = 'El tipo de dispositivo {$a->verb} {$a->name}';
+$string['trace_is'] = 'es';
+$string['trace_isnot'] = 'no es';
+$string['trace_coursetag'] = 'El curso {$a->verb} la etiqueta {$a->name}';
+$string['trace_has'] = 'tiene';
+$string['trace_nothas'] = 'no tiene';
 $string['trace_notfound'] = '#{$a} (no encontrado)';
 $string['trace_error'] = 'No se pudo evaluar esta regla: {$a}';
 

@@ -29,6 +29,14 @@ $string['condition_user'] = 'User';
 $string['condition_course'] = 'Course';
 $string['condition_coursecategory'] = 'Course category';
 $string['condition_cohort'] = 'Cohort';
+$string['condition_device'] = 'Device type';
+$string['condition_coursetag'] = 'Course tag';
+
+// Device type values (shared by the condition, the simulator device selector, and traces).
+$string['device_default'] = 'Desktop/default';
+$string['device_mobile'] = 'Mobile';
+$string['device_tablet'] = 'Tablet';
+$string['device_legacy'] = 'Legacy browser';
 
 // Capabilities.
 $string['themerules:view'] = 'View theme rules';
@@ -69,7 +77,7 @@ $string['form_expression_help'] = 'A logical condition tree in JSON. Example:
   {"type": "condition", "condition": "cohort", "operator": "member", "value": 7}
 ]}
 
-Available condition identifiers: user (operator "is"), course (operator "is"), coursecategory (operator "in_category", optional "includechildren"), cohort (operator "member" or "not_member"). Group operators: "and", "or". A visual editor for this will be available in a future version.';
+Available condition identifiers: user (operator "is"), course (operator "is"), coursecategory (operator "in_category", optional "includechildren"), cohort (operator "member" or "not_member"), device (operator "is" or "is_not", value one of "default", "mobile", "tablet", "legacy"), coursetag (operator "has" or "not_has", value a tag name). Group operators: "and", "or". A visual editor for this will be available in a future version.';
 $string['form_timestart'] = 'Valid from';
 $string['form_timeend'] = 'Valid until';
 $string['form_save'] = 'Save rule';
@@ -92,7 +100,7 @@ $string['editor_removecondition'] = 'Remove condition';
 $string['editor_removegroup'] = 'Remove group';
 $string['editor_condition'] = 'Condition';
 $string['editor_operator'] = 'Operator';
-$string['editor_value'] = 'Value (id)';
+$string['editor_value'] = 'Value';
 $string['editor_includechildren'] = 'Include subcategories';
 
 // Simulator.
@@ -110,6 +118,8 @@ $string['simulator_wouldselect'] = '→ would select theme "{$a}"';
 $string['simulator_selectedtheme'] = 'Selected theme';
 $string['simulator_selectedthemevalue'] = 'Theme "{$a}" would be selected.';
 $string['simulator_nomatch'] = 'No rule matches. Normal Moodle theme resolution would apply.';
+$string['simulator_devicetype'] = 'Device type';
+$string['simulator_devicetype_auto'] = 'Auto-detect (your current browser)';
 
 // Trace text (simulator condition lines and facts).
 $string['trace_fact_user'] = 'User';
@@ -117,6 +127,8 @@ $string['trace_fact_course'] = 'Course';
 $string['trace_fact_category'] = 'Category';
 $string['trace_fact_cohorts'] = 'Cohorts';
 $string['trace_fact_none'] = 'None';
+$string['trace_fact_device'] = 'Device type';
+$string['trace_fact_coursetags'] = 'Course tags';
 $string['trace_user'] = 'User is {$a}';
 $string['trace_course'] = 'Course is {$a}';
 $string['trace_coursecategory'] = 'Course category is {$a}';
@@ -124,6 +136,12 @@ $string['trace_includingdescendants'] = '(including subcategories)';
 $string['trace_cohort'] = 'User is {$a->verb} cohort {$a->name}';
 $string['trace_member'] = 'a member of';
 $string['trace_notmember'] = 'not a member of';
+$string['trace_device'] = 'Device type {$a->verb} {$a->name}';
+$string['trace_is'] = 'is';
+$string['trace_isnot'] = 'is not';
+$string['trace_coursetag'] = 'Course {$a->verb} the tag {$a->name}';
+$string['trace_has'] = 'has';
+$string['trace_nothas'] = 'does not have';
 $string['trace_notfound'] = '#{$a} (not found)';
 $string['trace_error'] = 'Could not evaluate this rule: {$a}';
 

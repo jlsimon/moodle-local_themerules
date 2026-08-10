@@ -36,6 +36,13 @@ final class fact_provider_test extends \advanced_testcase {
         $this->resetAfterTest(true);
     }
 
+    protected function tearDown(): void {
+        // Undo any forced user agent (test_..._detects_real_device_type() below), so it never
+        // leaks into a later test.
+        \core_useragent::instance(true);
+        parent::tearDown();
+    }
+
     public function test_create_for_current_user_has_no_course_facts(): void {
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
@@ -89,5 +96,60 @@ final class fact_provider_test extends \advanced_testcase {
         $context = fact_provider::create_for_course((int) $user->id, $course);
 
         $this->assertSame([(int) $cohort->id], $context->get_cohortids());
+    }
+
+    public function test_create_for_current_user_detects_real_device_type(): void {
+        \core_useragent::instance(
+            true,
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 ' .
+            '(KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
+        );
+
+        $context = fact_provider::create_for_current_user();
+
+        $this->assertSame('mobile', $context->get_devicetype());
+    }
+
+    /**
+     * Simulator support (SPECIFICATIONS.md section 31): an explicit override must win over the
+     * real device making the request, since the whole point is letting an admin test "what if
+     * this were a tablet" without needing an actual tablet.
+     */
+    public function test_create_for_user_and_course_devicetype_override_wins_over_real_device(): void {
+        \core_useragent::instance(
+            true,
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 ' .
+            '(KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
+        );
+
+        $context = fact_provider::create_for_user_and_course(1, null, 'tablet');
+
+        $this->assertSame('tablet', $context->get_devicetype());
+    }
+
+    public function test_create_for_user_and_course_defaults_to_real_device_when_no_override(): void {
+        \core_useragent::instance(true, 'some legacy-looking string');
+
+        $context = fact_provider::create_for_user_and_course(1, null);
+
+        $this->assertSame(\core_useragent::get_user_device_type(), $context->get_devicetype());
+    }
+
+    public function test_create_for_course_resolves_tags(): void {
+        $course = $this->getDataGenerator()->create_course(['tags' => 'Exam Mode, Archived']);
+        $user = $this->getDataGenerator()->create_user();
+
+        $context = fact_provider::create_for_course((int) $user->id, $course);
+
+        $this->assertSame(['exam mode', 'archived'], $context->get_coursetags());
+    }
+
+    public function test_create_for_current_user_has_no_tag_facts(): void {
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        $context = fact_provider::create_for_current_user();
+
+        $this->assertSame([], $context->get_coursetags());
     }
 }

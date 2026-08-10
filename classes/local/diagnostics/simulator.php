@@ -146,6 +146,21 @@ class simulator {
                     'name' => self::cohort_name($value),
                 ]);
 
+            case 'device':
+                $devicevalue = (string) ($node['value'] ?? '');
+                return get_string('trace_device', 'local_themerules', (object) [
+                    'verb' => get_string(($node['operator'] ?? 'is') === 'is'
+                        ? 'trace_is' : 'trace_isnot', 'local_themerules'),
+                    'name' => get_string('device_' . $devicevalue, 'local_themerules'),
+                ]);
+
+            case 'coursetag':
+                return get_string('trace_coursetag', 'local_themerules', (object) [
+                    'verb' => get_string(($node['operator'] ?? 'has') === 'has'
+                        ? 'trace_has' : 'trace_nothas', 'local_themerules'),
+                    'name' => (string) ($node['value'] ?? ''),
+                ]);
+
             default:
                 return $node['condition'] . ' ' . $value;
         }
@@ -170,6 +185,16 @@ class simulator {
         $facts[get_string('trace_fact_cohorts', 'local_themerules')] = empty($cohortids)
             ? get_string('trace_fact_none', 'local_themerules')
             : implode(', ', array_map([self::class, 'cohort_name'], $cohortids));
+
+        $facts[get_string('trace_fact_device', 'local_themerules')] =
+            get_string('device_' . $context->get_devicetype(), 'local_themerules');
+
+        if ($context->get_courseid() !== null) {
+            $coursetags = $context->get_coursetags();
+            $facts[get_string('trace_fact_coursetags', 'local_themerules')] = empty($coursetags)
+                ? get_string('trace_fact_none', 'local_themerules')
+                : implode(', ', $coursetags);
+        }
 
         return $facts;
     }

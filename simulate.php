@@ -26,11 +26,13 @@
 require(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
+use local_themerules\local\condition\device_condition;
 use local_themerules\local\diagnostics\simulator;
 use local_themerules\local\engine\fact_provider;
 
 $userid = optional_param('userid', 0, PARAM_INT);
 $courseid = optional_param('courseid', 0, PARAM_INT);
+$devicetype = optional_param('devicetype', '', PARAM_ALPHA);
 
 $context = context_system::instance();
 $indexurl = new moodle_url('/local/themerules/index.php');
@@ -65,6 +67,22 @@ echo html_writer::tag(
 );
 echo html_writer::empty_tag('input', ['type' => 'number', 'name' => 'courseid', 'id' => 'themerules-sim-courseid',
     'value' => $courseid ?: '', 'class' => 'form-control d-inline-block w-auto me-3']);
+echo html_writer::tag(
+    'label',
+    get_string('simulator_devicetype', 'local_themerules'),
+    ['for' => 'themerules-sim-devicetype', 'class' => 'me-1']
+);
+echo html_writer::start_tag('select', ['name' => 'devicetype', 'id' => 'themerules-sim-devicetype',
+    'class' => 'form-select d-inline-block w-auto me-3']);
+echo html_writer::tag('option', get_string('simulator_devicetype_auto', 'local_themerules'), ['value' => '']);
+foreach (device_condition::VALUES as $value) {
+    echo html_writer::tag(
+        'option',
+        get_string('device_' . $value, 'local_themerules'),
+        ['value' => $value, 'selected' => $devicetype === $value ? 'selected' : null]
+    );
+}
+echo html_writer::end_tag('select');
 echo html_writer::empty_tag('input', ['type' => 'submit', 'value' => get_string('simulate', 'local_themerules'),
     'class' => 'btn btn-primary']);
 echo html_writer::end_tag('form');
@@ -78,7 +96,7 @@ if ($userid > 0) {
         }
     }
 
-    $simcontext = fact_provider::create_for_user_and_course($userid, $course);
+    $simcontext = fact_provider::create_for_user_and_course($userid, $course, $devicetype !== '' ? $devicetype : null);
     $result = simulator::run($simcontext);
 
     echo $OUTPUT->heading(get_string('simulator_facts', 'local_themerules'), 3);

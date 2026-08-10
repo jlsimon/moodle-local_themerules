@@ -44,18 +44,28 @@ class evaluation_context {
     /** @var int[] */
     private array $cohortids;
 
+    /** One of \core_useragent::DEVICETYPE_* - unlike the other facts, always resolvable. */
+    private string $devicetype;
+
+    /** @var string[] Normalized (\core_tag_tag::normalize()) names of the course's tags. */
+    private array $coursetags;
+
     public function __construct(
         int $userid,
         ?int $courseid = null,
         ?int $coursecategoryid = null,
         array $coursecategorypath = [],
-        array $cohortids = []
+        array $cohortids = [],
+        string $devicetype = 'default',
+        array $coursetags = []
     ) {
         $this->userid = $userid;
         $this->courseid = $courseid;
         $this->coursecategoryid = $coursecategoryid;
         $this->coursecategorypath = $coursecategorypath;
         $this->cohortids = $cohortids;
+        $this->devicetype = $devicetype;
+        $this->coursetags = $coursetags;
     }
 
     public function get_userid(): int {
@@ -86,5 +96,22 @@ class evaluation_context {
      */
     public function get_cohortids(): array {
         return $this->cohortids;
+    }
+
+    /**
+     * One of \core_useragent::DEVICETYPE_* ('default', 'mobile', 'tablet', 'legacy').
+     */
+    public function get_devicetype(): string {
+        return $this->devicetype;
+    }
+
+    /**
+     * Normalized (\core_tag_tag::normalize()) names of the current course's tags. Empty when no
+     * real course is known yet, same constraint as get_coursecategoryid().
+     *
+     * @return string[]
+     */
+    public function get_coursetags(): array {
+        return $this->coursetags;
     }
 }

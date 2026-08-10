@@ -145,4 +145,36 @@ final class simulator_test extends \advanced_testcase {
         $this->assertTrue((bool) array_filter($facts, fn ($v) => str_contains($v, 'Test Course')));
         $this->assertTrue((bool) array_filter($facts, fn ($v) => str_contains($v, 'Test Category')));
     }
+
+    public function test_facts_include_devicetype_override(): void {
+        $result = simulator::run(fact_provider::create_for_user_and_course(123, null, 'tablet'));
+
+        $this->assertContains('Tablet', array_values($result->facts));
+    }
+
+    public function test_device_condition_is_traced_with_readable_text(): void {
+        $this->create_rule([
+            'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'device',
+                'operator' => 'is', 'value' => 'mobile']),
+        ]);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(123, null, 'mobile'));
+
+        $this->assertTrue($result->ruletraces[0]->matched);
+        $this->assertStringContainsString('Mobile', $result->ruletraces[0]->conditionlines[0]['text']);
+    }
+
+    public function test_coursetag_condition_is_traced_with_readable_text(): void {
+        $course = $this->getDataGenerator()->create_course(['tags' => 'exam-mode']);
+        $this->create_rule([
+            'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'coursetag',
+                'operator' => 'has', 'value' => 'exam-mode']),
+        ]);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course(123, $course));
+
+        $this->assertTrue($result->ruletraces[0]->matched);
+        $this->assertStringContainsString('exam-mode', $result->ruletraces[0]->conditionlines[0]['text']);
+        $this->assertContains('exam-mode', array_values($result->facts));
+    }
 }

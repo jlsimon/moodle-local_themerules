@@ -54,10 +54,20 @@ class fact_provider {
     /**
      * General-purpose entry point, also used by the simulator (section 31) to build a
      * context for an arbitrary user/course pair rather than the current session's.
+     *
+     * @param string|null $devicetype Override for the simulator (SPECIFICATIONS.md section 31),
+     *        one of \core_useragent::DEVICETYPE_*. Null (the default, and always the case for
+     *        Tier A/B production callers) means "use the real current request's device".
      */
-    public static function create_for_user_and_course(int $userid, ?\stdClass $course): evaluation_context {
+    public static function create_for_user_and_course(
+        int $userid,
+        ?\stdClass $course,
+        ?string $devicetype = null
+    ): evaluation_context {
+        $devicetype ??= \core_useragent::get_user_device_type();
+
         if ($course === null) {
-            return new evaluation_context($userid, null, null, [], self::get_cohort_ids($userid));
+            return new evaluation_context($userid, null, null, [], self::get_cohort_ids($userid), $devicetype);
         }
 
         $categorypath = self::get_category_path((int) ($course->category ?? 0));
@@ -68,7 +78,9 @@ class fact_provider {
             (int) $course->id,
             $coursecategoryid,
             $categorypath,
-            self::get_cohort_ids($userid)
+            self::get_cohort_ids($userid),
+            $devicetype,
+            self::get_course_tags((int) $course->id)
         );
     }
 
@@ -111,5 +123,21 @@ class fact_provider {
         $path = trim($category->path, '/');
 
         return $path === '' ? [] : array_map('intval', explode('/', $path));
+    }
+
+    /**
+     * Normalized (\core_tag_tag::normalize()) names of a course's tags.
+     *
+     * @return string[]
+     */
+    private static function get_course_tags(int $courseid): array {
+        if (empty($courseid)) {
+            return [];
+        }
+
+        return array_values(array_map(
+            fn (\core_tag_tag $tag): string => $tag->name,
+            \core_tag_tag::get_item_tags('core', 'course', $courseid)
+        ));
     }
 }

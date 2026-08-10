@@ -243,18 +243,41 @@ define([], function() {
             });
             row.appendChild(operatorSelect);
 
-            var valueInput = document.createElement('input');
-            valueInput.type = 'text';
-            valueInput.className = 'form-control form-control-sm w-auto';
-            valueInput.style.maxWidth = '10rem';
-            valueInput.setAttribute('aria-label', strings.value);
-            valueInput.placeholder = strings.value;
-            valueInput.value = node.value === undefined ? '' : node.value;
-            valueInput.addEventListener('input', function() {
-                var numeric = parseInt(valueInput.value, 10);
-                node.value = isNaN(numeric) ? valueInput.value : numeric;
-                sync();
-            });
+            var valueInput;
+            if (schema.options) {
+                // Fixed enum (e.g. device type): a free-text field would invite typos that
+                // silently never match, so offer exactly the valid values instead.
+                valueInput = document.createElement('select');
+                valueInput.className = 'form-select form-select-sm w-auto';
+                valueInput.setAttribute('aria-label', strings.value);
+                schema.options.forEach(function(option) {
+                    var optionEl = document.createElement('option');
+                    optionEl.value = option.value;
+                    optionEl.textContent = option.label;
+                    optionEl.selected = node.value === option.value;
+                    valueInput.appendChild(optionEl);
+                });
+                valueInput.addEventListener('change', function() {
+                    node.value = valueInput.value;
+                    sync();
+                });
+                if (node.value === undefined || node.value === '') {
+                    node.value = schema.options[0] ? schema.options[0].value : '';
+                }
+            } else {
+                valueInput = document.createElement('input');
+                valueInput.type = 'text';
+                valueInput.className = 'form-control form-control-sm w-auto';
+                valueInput.style.maxWidth = '10rem';
+                valueInput.setAttribute('aria-label', strings.value);
+                valueInput.placeholder = strings.value;
+                valueInput.value = node.value === undefined ? '' : node.value;
+                valueInput.addEventListener('input', function() {
+                    var numeric = parseInt(valueInput.value, 10);
+                    node.value = isNaN(numeric) ? valueInput.value : numeric;
+                    sync();
+                });
+            }
             row.appendChild(valueInput);
 
             if (schema.supportsincludechildren) {
