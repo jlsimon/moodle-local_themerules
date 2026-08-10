@@ -152,4 +152,39 @@ final class fact_provider_test extends \advanced_testcase {
 
         $this->assertSame([], $context->get_coursetags());
     }
+
+    public function test_create_for_course_resolves_group_membership(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        // groups_add_member() silently no-ops for a user not enrolled in the group's course.
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $this->getDataGenerator()->create_group_member(['groupid' => $group->id, 'userid' => $user->id]);
+
+        $context = fact_provider::create_for_course((int) $user->id, $course);
+
+        $this->assertSame([(int) $group->id], $context->get_coursegroupids());
+    }
+
+    public function test_create_for_course_group_membership_is_scoped_to_the_course(): void {
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user->id, $course2->id);
+        $group = $this->getDataGenerator()->create_group(['courseid' => $course2->id]);
+        $this->getDataGenerator()->create_group_member(['groupid' => $group->id, 'userid' => $user->id]);
+
+        $context = fact_provider::create_for_course((int) $user->id, $course1);
+
+        $this->assertSame([], $context->get_coursegroupids());
+    }
+
+    public function test_create_for_current_user_has_no_group_facts(): void {
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        $context = fact_provider::create_for_current_user();
+
+        $this->assertSame([], $context->get_coursegroupids());
+    }
 }

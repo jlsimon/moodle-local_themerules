@@ -177,6 +177,42 @@ final class simulator_test extends \advanced_testcase {
         $this->assertContains('exam-mode', array_values($result->facts));
     }
 
+    public function test_coursegroup_condition_is_traced_with_readable_text(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        // groups_add_member() silently no-ops for a user not enrolled in the group's course.
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        $group = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Team Alpha']);
+        $this->getDataGenerator()->create_group_member(['groupid' => $group->id, 'userid' => $user->id]);
+        $this->create_rule([
+            'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'coursegroup',
+                'operator' => 'member', 'value' => (int) $group->id]),
+        ]);
+
+        $result = simulator::run(fact_provider::create_for_course((int) $user->id, $course));
+
+        $this->assertTrue($result->ruletraces[0]->matched);
+        $this->assertStringContainsString('Team Alpha', $result->ruletraces[0]->conditionlines[0]['text']);
+        $this->assertContains('Team Alpha (id ' . $group->id . ')', array_values($result->facts));
+    }
+
+    public function test_coursegroup_any_group_is_traced_with_distinct_text(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $this->getDataGenerator()->create_group_member(['groupid' => $group->id, 'userid' => $user->id]);
+        $this->create_rule([
+            'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'coursegroup',
+                'operator' => 'member', 'value' => 0]),
+        ]);
+
+        $result = simulator::run(fact_provider::create_for_course((int) $user->id, $course));
+
+        $this->assertTrue($result->ruletraces[0]->matched);
+        $this->assertStringContainsString('at least one group', $result->ruletraces[0]->conditionlines[0]['text']);
+    }
+
     /**
      * userid 0 is not "not found" - it is what a genuinely anonymous, not-logged-in visitor's
      * userid actually is at Tier A, so the simulator must let an admin test that scenario

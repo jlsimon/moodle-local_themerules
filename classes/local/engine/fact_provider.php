@@ -80,7 +80,8 @@ class fact_provider {
             $categorypath,
             self::get_cohort_ids($userid),
             $devicetype,
-            self::get_course_tags((int) $course->id)
+            self::get_course_tags((int) $course->id),
+            self::get_course_group_ids($userid, (int) $course->id)
         );
     }
 
@@ -101,6 +102,32 @@ class fact_provider {
             'cohortid',
             'userid = :userid',
             ['userid' => $userid]
+        )));
+    }
+
+    /**
+     * The ids of every group the user belongs to within the given course.
+     *
+     * Deliberately a direct query against {groups}/{groups_members}, not core's
+     * groups_get_user_groups() - that function applies `moodle/course:viewhiddengroups` and
+     * group-visibility rules meant for the "which members can this user see in the group
+     * selector" UI concern, which has nothing to do with resolving the plain fact "is this user
+     * a member of group X". Same reasoning as get_cohort_ids() below not using any cohort UI
+     * helper either.
+     *
+     * @return int[]
+     */
+    private static function get_course_group_ids(int $userid, int $courseid): array {
+        global $DB;
+
+        if (empty($userid) || empty($courseid)) {
+            return [];
+        }
+
+        return array_values(array_map('intval', $DB->get_fieldset_sql(
+            'SELECT g.id FROM {groups} g JOIN {groups_members} gm ON gm.groupid = g.id
+              WHERE g.courseid = :courseid AND gm.userid = :userid',
+            ['courseid' => $courseid, 'userid' => $userid]
         )));
     }
 

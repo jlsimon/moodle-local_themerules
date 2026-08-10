@@ -112,6 +112,7 @@ without needing an actual tablet.
 | `course` | `is` | Value: a course id. |
 | `coursecategory` | `in_category` | Value: a category id. Optional `"includechildren": true` to also match descendant categories. |
 | `cohort` | `member`, `not_member` | Value: a cohort id. |
+| `coursegroup` | `member`, `not_member` | Value: a course group id, or `0` to mean "any group in this course" (mirrors Moodle's own "Restrict access > Group" condition). Only resolvable on a real course, same constraint as `course`/`coursecategory`/`coursetag`. |
 | `device` | `is`, `is_not` | Value: one of `default`, `mobile`, `tablet`, `legacy` (matches `\core_useragent::DEVICETYPE_*`, including the user's own "view full site" override). Unlike the other conditions this is always resolvable, even before login. |
 | `coursetag` | `has`, `not_has` | Value: a tag name, e.g. `"exam-mode"`. Matched case-insensitively with leading/trailing whitespace trimmed (the same normalization Moodle itself uses for tags) - `"Exam-Mode"` and `"exam-mode "` match the same tag, but a space and a hyphen are still different characters (`"Exam Mode"` ≠ `"exam-mode"`). Only resolvable on a real course, same constraint as `course`/`coursecategory`. |
 | `profilefield` | `is`, `is_not` | `"field"`: a standard field shortname (`firstname`, `lastname`, `email`, `city`, `country`, `idnumber`, `institution`, `department`, `phone1`, `phone2`, `address` - the same list Moodle's own "Restrict access > User profile field" uses) or a custom profile field's shortname with `"customfield": true`. Value: a string, matched with exact case-sensitive equality (also matching Moodle's own `availability_profile` behaviour). The visual editor offers every field this site actually has (including real custom fields) as a dropdown, so this is rarely typed by hand. |
@@ -138,6 +139,13 @@ Any course tagged "exam-mode" gets a distraction-free theme:
 
 ```json
 {"type": "condition", "condition": "coursetag", "operator": "has", "value": "exam-mode"}
+```
+
+Members of course group 5 get their own branding; `0` would instead mean "any
+group in this course":
+
+```json
+{"type": "condition", "condition": "coursegroup", "operator": "member", "value": 5}
 ```
 
 Everyone whose institution profile field is "UTAD" gets that institution's

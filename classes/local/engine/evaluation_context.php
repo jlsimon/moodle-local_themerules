@@ -50,6 +50,9 @@ class evaluation_context {
     /** @var string[] Normalized (\core_tag_tag::normalize()) names of the course's tags. */
     private array $coursetags;
 
+    /** @var int[] Ids of the groups the user belongs to, within the current course. */
+    private array $coursegroupids;
+
     public function __construct(
         int $userid,
         ?int $courseid = null,
@@ -57,7 +60,8 @@ class evaluation_context {
         array $coursecategorypath = [],
         array $cohortids = [],
         string $devicetype = 'default',
-        array $coursetags = []
+        array $coursetags = [],
+        array $coursegroupids = []
     ) {
         $this->userid = $userid;
         $this->courseid = $courseid;
@@ -66,6 +70,7 @@ class evaluation_context {
         $this->cohortids = $cohortids;
         $this->devicetype = $devicetype;
         $this->coursetags = $coursetags;
+        $this->coursegroupids = $coursegroupids;
     }
 
     public function get_userid(): int {
@@ -113,5 +118,15 @@ class evaluation_context {
      */
     public function get_coursetags(): array {
         return $this->coursetags;
+    }
+
+    /**
+     * Ids of every group the user belongs to within the current course. Empty when no real
+     * course is known yet, same constraint as get_coursecategoryid()/get_coursetags().
+     *
+     * @return int[]
+     */
+    public function get_coursegroupids(): array {
+        return $this->coursegroupids;
     }
 }

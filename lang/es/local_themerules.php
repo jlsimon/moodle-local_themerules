@@ -29,6 +29,7 @@ $string['condition_user'] = 'Usuario';
 $string['condition_course'] = 'Curso';
 $string['condition_coursecategory'] = 'Categoría de curso';
 $string['condition_cohort'] = 'Cohorte';
+$string['condition_coursegroup'] = 'Grupo de curso';
 $string['condition_device'] = 'Tipo de dispositivo';
 $string['condition_coursetag'] = 'Etiqueta de curso';
 $string['condition_profilefield'] = 'Campo de perfil';
@@ -93,7 +94,7 @@ $string['form_expression_help'] = 'Un árbol de condiciones lógicas en JSON. Ej
   {"type": "condition", "condition": "cohort", "operator": "member", "value": 7}
 ]}
 
-Identificadores de condición disponibles: user (operador "is"), course (operador "is"), coursecategory (operador "in_category", opcionalmente "includechildren"), cohort (operador "member" o "not_member"), device (operador "is" o "is_not", valor "default", "mobile", "tablet" o "legacy"), coursetag (operador "has" o "not_has", valor el nombre de una etiqueta), profilefield (operador "is" o "is_not", "field" el nombre corto de un campo de perfil estándar o personalizado, opcionalmente "customfield": true si es personalizado, "value" una cadena). Operadores de grupo: "and", "or". Un editor visual estará disponible en una futura versión.';
+Identificadores de condición disponibles: user (operador "is"), course (operador "is"), coursecategory (operador "in_category", opcionalmente "includechildren"), cohort (operador "member" o "not_member"), coursegroup (operador "member" o "not_member", valor el id de un grupo, 0 = cualquier grupo), device (operador "is" o "is_not", valor "default", "mobile", "tablet" o "legacy"), coursetag (operador "has" o "not_has", valor el nombre de una etiqueta), profilefield (operador "is" o "is_not", "field" el nombre corto de un campo de perfil estándar o personalizado, opcionalmente "customfield": true si es personalizado, "value" una cadena). Operadores de grupo: "and", "or". Un editor visual estará disponible en una futura versión.';
 $string['form_timestart'] = 'Válida desde';
 $string['form_timeend'] = 'Válida hasta';
 $string['form_save'] = 'Guardar regla';
@@ -151,6 +152,7 @@ $string['trace_fact_cohorts'] = 'Cohortes';
 $string['trace_fact_none'] = 'Ninguna';
 $string['trace_fact_device'] = 'Tipo de dispositivo';
 $string['trace_fact_coursetags'] = 'Etiquetas del curso';
+$string['trace_fact_coursegroups'] = 'Grupos del curso';
 $string['trace_anonymous'] = 'Anónimo / sin sesión iniciada';
 $string['trace_user'] = 'El usuario es {$a}';
 $string['trace_course'] = 'El curso es {$a}';
@@ -166,6 +168,11 @@ $string['trace_coursetag'] = 'El curso {$a->verb} la etiqueta {$a->name}';
 $string['trace_has'] = 'tiene';
 $string['trace_nothas'] = 'no tiene';
 $string['trace_profilefield'] = 'El campo de perfil "{$a->field}" {$a->verb} "{$a->value}"';
+$string['trace_coursegroup'] = 'El usuario {$a->verb} {$a->name}';
+$string['trace_coursegroup_member'] = 'es miembro del grupo';
+$string['trace_coursegroup_notmember'] = 'no es miembro del grupo';
+$string['trace_coursegroup_any_member'] = 'El usuario pertenece a algún grupo del curso';
+$string['trace_coursegroup_any_notmember'] = 'El usuario no pertenece a ningún grupo del curso';
 $string['trace_notfound'] = '#{$a} (no encontrado)';
 $string['trace_fieldnotfound'] = 'campo "{$a}" (no encontrado)';
 $string['trace_error'] = 'No se pudo evaluar esta regla: {$a}';

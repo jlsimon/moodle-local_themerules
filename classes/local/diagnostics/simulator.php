@@ -180,6 +180,24 @@ class simulator {
                     'name' => self::cohort_name($value),
                 ]);
 
+            case 'coursegroup':
+                $ismember = ($node['operator'] ?? 'member') === 'member';
+                if ($value === 0) {
+                    // Group id 0 means "any group in the course" (mirrors Moodle's own
+                    // availability_group), a different sentence shape than naming one group.
+                    return get_string(
+                        $ismember ? 'trace_coursegroup_any_member' : 'trace_coursegroup_any_notmember',
+                        'local_themerules'
+                    );
+                }
+                return get_string('trace_coursegroup', 'local_themerules', (object) [
+                    'verb' => get_string(
+                        $ismember ? 'trace_coursegroup_member' : 'trace_coursegroup_notmember',
+                        'local_themerules'
+                    ),
+                    'name' => self::group_name($value),
+                ]);
+
             case 'device':
                 $devicevalue = (string) ($node['value'] ?? '');
                 return get_string('trace_device', 'local_themerules', (object) [
@@ -236,6 +254,11 @@ class simulator {
             $facts[get_string('trace_fact_coursetags', 'local_themerules')] = empty($coursetags)
                 ? get_string('trace_fact_none', 'local_themerules')
                 : implode(', ', $coursetags);
+
+            $coursegroupids = $context->get_coursegroupids();
+            $facts[get_string('trace_fact_coursegroups', 'local_themerules')] = empty($coursegroupids)
+                ? get_string('trace_fact_none', 'local_themerules')
+                : implode(', ', array_map([self::class, 'group_name'], $coursegroupids));
         }
 
         return $facts;
@@ -273,6 +296,12 @@ class simulator {
         global $DB;
         $cohort = $DB->get_record('cohort', ['id' => $id], 'id, name', IGNORE_MISSING);
         return $cohort ? format_string($cohort->name) . " (id {$id})" : self::not_found($id);
+    }
+
+    private static function group_name(int $id): string {
+        global $DB;
+        $group = $DB->get_record('groups', ['id' => $id], 'id, name', IGNORE_MISSING);
+        return $group ? format_string($group->name) . " (id {$id})" : self::not_found($id);
     }
 
     private static function logo_name(int $id): string {

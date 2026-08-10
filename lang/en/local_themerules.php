@@ -29,6 +29,7 @@ $string['condition_user'] = 'User';
 $string['condition_course'] = 'Course';
 $string['condition_coursecategory'] = 'Course category';
 $string['condition_cohort'] = 'Cohort';
+$string['condition_coursegroup'] = 'Course group';
 $string['condition_device'] = 'Device type';
 $string['condition_coursetag'] = 'Course tag';
 $string['condition_profilefield'] = 'Profile field';
@@ -93,7 +94,7 @@ $string['form_expression_help'] = 'A logical condition tree in JSON. Example:
   {"type": "condition", "condition": "cohort", "operator": "member", "value": 7}
 ]}
 
-Available condition identifiers: user (operator "is"), course (operator "is"), coursecategory (operator "in_category", optional "includechildren"), cohort (operator "member" or "not_member"), device (operator "is" or "is_not", value one of "default", "mobile", "tablet", "legacy"), coursetag (operator "has" or "not_has", value a tag name), profilefield (operator "is" or "is_not", "field" a standard or custom user profile field shortname, optional "customfield": true for a custom one, "value" a string). Group operators: "and", "or". A visual editor for this will be available in a future version.';
+Available condition identifiers: user (operator "is"), course (operator "is"), coursecategory (operator "in_category", optional "includechildren"), cohort (operator "member" or "not_member"), coursegroup (operator "member" or "not_member", value a group id, 0 = any group), device (operator "is" or "is_not", value one of "default", "mobile", "tablet", "legacy"), coursetag (operator "has" or "not_has", value a tag name), profilefield (operator "is" or "is_not", "field" a standard or custom user profile field shortname, optional "customfield": true for a custom one, "value" a string). Group operators: "and", "or". A visual editor for this will be available in a future version.';
 $string['form_timestart'] = 'Valid from';
 $string['form_timeend'] = 'Valid until';
 $string['form_save'] = 'Save rule';
@@ -151,6 +152,7 @@ $string['trace_fact_cohorts'] = 'Cohorts';
 $string['trace_fact_none'] = 'None';
 $string['trace_fact_device'] = 'Device type';
 $string['trace_fact_coursetags'] = 'Course tags';
+$string['trace_fact_coursegroups'] = 'Course groups';
 $string['trace_anonymous'] = 'Anonymous / not logged in';
 $string['trace_user'] = 'User is {$a}';
 $string['trace_course'] = 'Course is {$a}';
@@ -166,6 +168,11 @@ $string['trace_coursetag'] = 'Course {$a->verb} the tag {$a->name}';
 $string['trace_has'] = 'has';
 $string['trace_nothas'] = 'does not have';
 $string['trace_profilefield'] = 'Profile field "{$a->field}" {$a->verb} "{$a->value}"';
+$string['trace_coursegroup'] = 'User is {$a->verb} {$a->name}';
+$string['trace_coursegroup_member'] = 'a member of group';
+$string['trace_coursegroup_notmember'] = 'not a member of group';
+$string['trace_coursegroup_any_member'] = 'User belongs to at least one group in the course';
+$string['trace_coursegroup_any_notmember'] = 'User does not belong to any group in the course';
 $string['trace_notfound'] = '#{$a} (not found)';
 $string['trace_fieldnotfound'] = 'field "{$a}" (not found)';
 $string['trace_error'] = 'Could not evaluate this rule: {$a}';

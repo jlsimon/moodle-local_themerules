@@ -38,6 +38,7 @@ class condition_registry {
         'course' => course_condition::class,
         'coursecategory' => course_category_condition::class,
         'cohort' => cohort_condition::class,
+        'coursegroup' => course_group_condition::class,
         'device' => device_condition::class,
         'coursetag' => course_tag_condition::class,
         'profilefield' => profile_field_condition::class,
