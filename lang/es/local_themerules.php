@@ -60,6 +60,13 @@ $string['movedown'] = 'Bajar';
 $string['duplicate'] = 'Duplicar';
 $string['duplicate_name'] = '{$a} (copia)';
 $string['confirm_delete'] = '¿Eliminar la regla "{$a}"? Esta acción no se puede deshacer.';
+$string['export'] = 'Exportar';
+$string['import'] = 'Importar';
+$string['form_rulesfile'] = 'Archivo de reglas (JSON)';
+$string['import_help'] = 'Sube un archivo JSON generado previamente con Exportar. Las reglas importadas siempre se añaden como nuevas, desactivadas por defecto, para que nunca empiecen a afectar al tráfico real sin revisión - actívalas desde el listado de reglas cuando corresponda. Los ids de usuario/curso/cohorte/grupo y las referencias a tema/logo solo significan lo mismo en este mismo sitio (o en otro que comparta esos mismos ids, por ejemplo una copia de preproducción) - una referencia que no exista aquí se omite de forma segura, igual que cualquier otra regla que apunte a una entidad eliminada.';
+$string['import_summary'] = 'Se han importado {$a->imported} de {$a->total} regla(s).';
+$string['import_error_format'] = 'Este archivo no es una exportación válida de reglas de tema (se esperaba {"format": 1, "rules": [...]}).';
+$string['import_error_named'] = 'Regla "{$a->name}": {$a->message}';
 
 // Notifications.
 $string['notify_saved'] = 'Regla guardada.';

@@ -60,6 +60,13 @@ $string['movedown'] = 'Move down';
 $string['duplicate'] = 'Duplicate';
 $string['duplicate_name'] = '{$a} (copy)';
 $string['confirm_delete'] = 'Delete rule "{$a}"? This cannot be undone.';
+$string['export'] = 'Export';
+$string['import'] = 'Import';
+$string['form_rulesfile'] = 'Rules file (JSON)';
+$string['import_help'] = 'Upload a JSON file previously produced by Export. Imported rules are always added as new, disabled by default so they never silently start affecting live traffic - review and enable them from the rule list afterwards. User/course/cohort/group ids and theme/logo references only mean the same thing again on this same site (or another site sharing the same ids, e.g. a staging copy) - a reference that does not exist here is skipped safely, the same as any other rule pointing at a deleted entity.';
+$string['import_summary'] = 'Imported {$a->imported} of {$a->total} rule(s).';
+$string['import_error_format'] = 'This file is not a valid theme rules export (expected {"format": 1, "rules": [...]}).';
+$string['import_error_named'] = 'Rule "{$a->name}": {$a->message}';
 
 // Notifications.
 $string['notify_saved'] = 'Rule saved.';

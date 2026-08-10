@@ -102,6 +102,25 @@ device type being simulated (auto-detected from your own browser by
 default), so you can test a `device` rule as "what if this were a tablet"
 without needing an actual tablet.
 
+### Export / import
+
+**Export** (available to anyone with `local/themerules:view`) downloads
+every rule on this site as a single JSON file:
+`{"format": 1, "rules": [...]}`. **Import** (`local/themerules:manage`)
+uploads that same kind of file back - useful for backups, or copying a
+rule set between environments that share the same user/course/cohort/
+group/logo ids (e.g. staging and production kept in sync). Imported rules
+are always added as new rules, appended at the end of the evaluation order
+and **disabled by default**, same as duplicating a rule - so importing a
+large rule set never silently starts affecting live traffic before you've
+reviewed it. Import is best-effort per rule: one malformed entry in an
+otherwise-good file is skipped and reported, not fatal to the rest: every
+rule goes through the exact same validation a hand-typed rule would. A
+`theme`/`logoid`/condition value (user, course, cohort, group id) that
+doesn't exist on the importing site is not rejected at import time - it
+imports fine and is simply skipped safely at evaluation time, the same as
+any other rule pointing at a deleted entity (see Troubleshooting below).
+
 ### Action types
 
 | Type | Value | Notes |

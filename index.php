@@ -26,6 +26,7 @@
 require(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
+use local_themerules\local\io\rule_export_import;
 use local_themerules\local\repository\logo_repository;
 use local_themerules\local\repository\rule_repository;
 use local_themerules\local\validation\rule_validator;
@@ -42,6 +43,17 @@ $url = new moodle_url('/local/themerules/index.php');
 admin_externalpage_setup('local_themerules');
 
 $repository = new rule_repository();
+
+if ($action === 'export') {
+    // A read-only action (exports what the admin can already see on this same page), so no
+    // sesskey/id requirement, same as the simulate.php/logos.php navigation links.
+    $filename = 'themerules-export-' . userdate(time(), '%Y%m%d-%H%M') . '.json';
+
+    header('Content-Type: application/json; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    echo json_encode(rule_export_import::export_all($repository), JSON_PRETTY_PRINT);
+    exit;
+}
 
 if ($action !== '' && $id > 0) {
     require_capability('local/themerules:manage', $context);
@@ -97,7 +109,13 @@ if (has_capability('local/themerules:manage', $context)) {
         get_string('logos', 'local_themerules'),
         'get'
     );
+    echo $OUTPUT->single_button(
+        new moodle_url('/local/themerules/import.php'),
+        get_string('import', 'local_themerules'),
+        'get'
+    );
 }
+echo $OUTPUT->single_button(new moodle_url($url, ['action' => 'export']), get_string('export', 'local_themerules'), 'get');
 
 $rules = $repository->get_all_records_ordered();
 
