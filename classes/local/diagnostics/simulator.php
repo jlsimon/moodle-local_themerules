@@ -195,6 +195,14 @@ class simulator {
                     'name' => (string) ($node['value'] ?? ''),
                 ]);
 
+            case 'profilefield':
+                return get_string('trace_profilefield', 'local_themerules', (object) [
+                    'field' => self::profilefield_label((string) ($node['field'] ?? '')),
+                    'verb' => get_string(($node['operator'] ?? 'is') === 'is'
+                        ? 'trace_is' : 'trace_isnot', 'local_themerules'),
+                    'value' => (string) ($node['value'] ?? ''),
+                ]);
+
             default:
                 return $node['condition'] . ' ' . $value;
         }
@@ -271,6 +279,34 @@ class simulator {
         global $DB;
         $logo = $DB->get_record('local_themerules_logo', ['id' => $id], 'id, name', IGNORE_MISSING);
         return $logo ? format_string($logo->name) . " (id {$id})" : self::not_found($id);
+    }
+
+    /**
+     * Resolves a profilefield condition's field shortname to a human label, trying a custom
+     * field first (its name lives in the DB, unlike a standard field's) and falling back to
+     * core's own display name for a standard field - self-contained rather than depending on
+     * the condition's own `customfield` flag, so this stays correct even for a stale/corrupt one.
+     */
+    private static function profilefield_label(string $field): string {
+        global $DB;
+
+        $custom = $DB->get_record('user_info_field', ['shortname' => $field], 'name', IGNORE_MISSING);
+        if ($custom) {
+            return format_string($custom->name);
+        }
+
+        if (in_array($field, \local_themerules\local\condition\profile_field_condition::STANDARD_FIELDS, true)) {
+            return \core_user\fields::get_display_name($field);
+        }
+
+        // Neither a real custom field nor a known standard one (e.g. a deleted custom field, or
+        // hand-edited JSON) - SPECIFICATIONS.md section 50: show it is broken, don't fabricate a
+        // label or emit core's raw "[[shortname]]" missing-string marker.
+        return self::not_found_field($field);
+    }
+
+    private static function not_found_field(string $field): string {
+        return get_string('trace_fieldnotfound', 'local_themerules', $field);
     }
 
     /**

@@ -200,4 +200,34 @@ final class simulator_test extends \advanced_testcase {
         $this->assertTrue($result->ruletraces[0]->matched);
         $this->assertStringContainsString('Anonymous / not logged in', $result->ruletraces[0]->conditionlines[0]['text']);
     }
+
+    public function test_profilefield_condition_is_traced_with_readable_text(): void {
+        $user = $this->getDataGenerator()->create_user(['institution' => 'UTAD']);
+        $this->create_rule([
+            'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'profilefield',
+                'operator' => 'is', 'field' => 'institution', 'value' => 'UTAD']),
+        ]);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course((int) $user->id, null));
+
+        $this->assertTrue($result->ruletraces[0]->matched);
+        $this->assertStringContainsString('UTAD', $result->ruletraces[0]->conditionlines[0]['text']);
+        $this->assertStringContainsString('Institution', $result->ruletraces[0]->conditionlines[0]['text']);
+    }
+
+    public function test_profilefield_condition_custom_field_shows_its_name_not_shortname(): void {
+        $this->getDataGenerator()->create_custom_profile_field([
+            'datatype' => 'text', 'shortname' => 'employeeid', 'name' => 'Employee ID',
+        ]);
+        $user = $this->getDataGenerator()->create_user(['profile_field_employeeid' => '12345']);
+        $this->create_rule([
+            'expressionjson' => json_encode(['type' => 'condition', 'condition' => 'profilefield',
+                'operator' => 'is', 'field' => 'employeeid', 'customfield' => true, 'value' => '12345']),
+        ]);
+
+        $result = simulator::run(fact_provider::create_for_user_and_course((int) $user->id, null));
+
+        $this->assertTrue($result->ruletraces[0]->matched);
+        $this->assertStringContainsString('Employee ID', $result->ruletraces[0]->conditionlines[0]['text']);
+    }
 }

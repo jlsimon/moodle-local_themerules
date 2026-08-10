@@ -31,6 +31,7 @@ $string['condition_coursecategory'] = 'Course category';
 $string['condition_cohort'] = 'Cohort';
 $string['condition_device'] = 'Device type';
 $string['condition_coursetag'] = 'Course tag';
+$string['condition_profilefield'] = 'Profile field';
 
 // Device type values (shared by the condition, the simulator device selector, and traces).
 $string['device_default'] = 'Desktop/default';
@@ -92,7 +93,7 @@ $string['form_expression_help'] = 'A logical condition tree in JSON. Example:
   {"type": "condition", "condition": "cohort", "operator": "member", "value": 7}
 ]}
 
-Available condition identifiers: user (operator "is"), course (operator "is"), coursecategory (operator "in_category", optional "includechildren"), cohort (operator "member" or "not_member"), device (operator "is" or "is_not", value one of "default", "mobile", "tablet", "legacy"), coursetag (operator "has" or "not_has", value a tag name). Group operators: "and", "or". A visual editor for this will be available in a future version.';
+Available condition identifiers: user (operator "is"), course (operator "is"), coursecategory (operator "in_category", optional "includechildren"), cohort (operator "member" or "not_member"), device (operator "is" or "is_not", value one of "default", "mobile", "tablet", "legacy"), coursetag (operator "has" or "not_has", value a tag name), profilefield (operator "is" or "is_not", "field" a standard or custom user profile field shortname, optional "customfield": true for a custom one, "value" a string). Group operators: "and", "or". A visual editor for this will be available in a future version.';
 $string['form_timestart'] = 'Valid from';
 $string['form_timeend'] = 'Valid until';
 $string['form_save'] = 'Save rule';
@@ -114,6 +115,7 @@ $string['editor_addgroup'] = 'Add group';
 $string['editor_removecondition'] = 'Remove condition';
 $string['editor_removegroup'] = 'Remove group';
 $string['editor_condition'] = 'Condition';
+$string['editor_field'] = 'Field';
 $string['editor_operator'] = 'Operator';
 $string['editor_value'] = 'Value';
 $string['editor_includechildren'] = 'Include subcategories';
@@ -163,7 +165,9 @@ $string['trace_isnot'] = 'is not';
 $string['trace_coursetag'] = 'Course {$a->verb} the tag {$a->name}';
 $string['trace_has'] = 'has';
 $string['trace_nothas'] = 'does not have';
+$string['trace_profilefield'] = 'Profile field "{$a->field}" {$a->verb} "{$a->value}"';
 $string['trace_notfound'] = '#{$a} (not found)';
+$string['trace_fieldnotfound'] = 'field "{$a}" (not found)';
 $string['trace_error'] = 'Could not evaluate this rule: {$a}';
 
 // Privacy API.

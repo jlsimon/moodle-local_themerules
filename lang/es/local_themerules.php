@@ -31,6 +31,7 @@ $string['condition_coursecategory'] = 'Categoría de curso';
 $string['condition_cohort'] = 'Cohorte';
 $string['condition_device'] = 'Tipo de dispositivo';
 $string['condition_coursetag'] = 'Etiqueta de curso';
+$string['condition_profilefield'] = 'Campo de perfil';
 
 // Device type values (shared by the condition, the simulator device selector, and traces).
 $string['device_default'] = 'Escritorio/por defecto';
@@ -92,7 +93,7 @@ $string['form_expression_help'] = 'Un árbol de condiciones lógicas en JSON. Ej
   {"type": "condition", "condition": "cohort", "operator": "member", "value": 7}
 ]}
 
-Identificadores de condición disponibles: user (operador "is"), course (operador "is"), coursecategory (operador "in_category", opcionalmente "includechildren"), cohort (operador "member" o "not_member"), device (operador "is" o "is_not", valor "default", "mobile", "tablet" o "legacy"), coursetag (operador "has" o "not_has", valor el nombre de una etiqueta). Operadores de grupo: "and", "or". Un editor visual estará disponible en una futura versión.';
+Identificadores de condición disponibles: user (operador "is"), course (operador "is"), coursecategory (operador "in_category", opcionalmente "includechildren"), cohort (operador "member" o "not_member"), device (operador "is" o "is_not", valor "default", "mobile", "tablet" o "legacy"), coursetag (operador "has" o "not_has", valor el nombre de una etiqueta), profilefield (operador "is" o "is_not", "field" el nombre corto de un campo de perfil estándar o personalizado, opcionalmente "customfield": true si es personalizado, "value" una cadena). Operadores de grupo: "and", "or". Un editor visual estará disponible en una futura versión.';
 $string['form_timestart'] = 'Válida desde';
 $string['form_timeend'] = 'Válida hasta';
 $string['form_save'] = 'Guardar regla';
@@ -114,6 +115,7 @@ $string['editor_addgroup'] = 'Añadir grupo';
 $string['editor_removecondition'] = 'Eliminar condición';
 $string['editor_removegroup'] = 'Eliminar grupo';
 $string['editor_condition'] = 'Condición';
+$string['editor_field'] = 'Campo';
 $string['editor_operator'] = 'Operador';
 $string['editor_value'] = 'Valor';
 $string['editor_includechildren'] = 'Incluir subcategorías';
@@ -163,7 +165,9 @@ $string['trace_isnot'] = 'no es';
 $string['trace_coursetag'] = 'El curso {$a->verb} la etiqueta {$a->name}';
 $string['trace_has'] = 'tiene';
 $string['trace_nothas'] = 'no tiene';
+$string['trace_profilefield'] = 'El campo de perfil "{$a->field}" {$a->verb} "{$a->value}"';
 $string['trace_notfound'] = '#{$a} (no encontrado)';
+$string['trace_fieldnotfound'] = 'campo "{$a}" (no encontrado)';
 $string['trace_error'] = 'No se pudo evaluar esta regla: {$a}';
 
 // Privacy API.

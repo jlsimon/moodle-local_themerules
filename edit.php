@@ -114,6 +114,7 @@ $PAGE->requires->js_call_amd('local_themerules/rule_editor', 'init', [
         'removecondition' => get_string('editor_removecondition', 'local_themerules'),
         'removegroup' => get_string('editor_removegroup', 'local_themerules'),
         'condition' => get_string('editor_condition', 'local_themerules'),
+        'field' => get_string('editor_field', 'local_themerules'),
         'operator' => get_string('editor_operator', 'local_themerules'),
         'value' => get_string('editor_value', 'local_themerules'),
         'includechildren' => get_string('editor_includechildren', 'local_themerules'),

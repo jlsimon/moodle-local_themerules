@@ -114,6 +114,7 @@ without needing an actual tablet.
 | `cohort` | `member`, `not_member` | Value: a cohort id. |
 | `device` | `is`, `is_not` | Value: one of `default`, `mobile`, `tablet`, `legacy` (matches `\core_useragent::DEVICETYPE_*`, including the user's own "view full site" override). Unlike the other conditions this is always resolvable, even before login. |
 | `coursetag` | `has`, `not_has` | Value: a tag name, e.g. `"exam-mode"`. Matched case-insensitively with leading/trailing whitespace trimmed (the same normalization Moodle itself uses for tags) - `"Exam-Mode"` and `"exam-mode "` match the same tag, but a space and a hyphen are still different characters (`"Exam Mode"` ≠ `"exam-mode"`). Only resolvable on a real course, same constraint as `course`/`coursecategory`. |
+| `profilefield` | `is`, `is_not` | `"field"`: a standard field shortname (`firstname`, `lastname`, `email`, `city`, `country`, `idnumber`, `institution`, `department`, `phone1`, `phone2`, `address` - the same list Moodle's own "Restrict access > User profile field" uses) or a custom profile field's shortname with `"customfield": true`. Value: a string, matched with exact case-sensitive equality (also matching Moodle's own `availability_profile` behaviour). The visual editor offers every field this site actually has (including real custom fields) as a dropdown, so this is rarely typed by hand. |
 
 Group nodes use `"operator": "and"` or `"operator": "or"` with a
 `"children"` array of further condition/group nodes, nested up to 10
@@ -137,6 +138,21 @@ Any course tagged "exam-mode" gets a distraction-free theme:
 
 ```json
 {"type": "condition", "condition": "coursetag", "operator": "has", "value": "exam-mode"}
+```
+
+Everyone whose institution profile field is "UTAD" gets that institution's
+branding - the multi-tenant scenario this plugin's logo action was
+originally built for, now reachable from a condition too:
+
+```json
+{"type": "condition", "condition": "profilefield", "operator": "is", "field": "institution", "value": "UTAD"}
+```
+
+The same idea with a custom profile field (`"customfield": true`, value
+still a plain string):
+
+```json
+{"type": "condition", "condition": "profilefield", "operator": "is", "field": "employeeid", "customfield": true, "value": "99887"}
 ```
 
 Cohort "Company A" gets both a theme and a matching logo from one rule.
@@ -223,6 +239,13 @@ combined with an OR of two cohorts:
   automatically on every save/enable/disable/reorder/delete through the admin UI;
   if a rule was changed by some other means (direct DB write, a script),
   run *Site administration > Development > Purge caches*.
+- **A `profilefield` condition never matches for a logged-out visitor.**
+  Expected: an anonymous visitor (`user` id `0`, see above) has no profile
+  field values by definition, so `is` never matches for them. `is_not`
+  always matches for them instead - a profile-field `is_not` rule will
+  therefore also catch every anonymous visitor, not only real users with
+  a genuinely different value. Combine it with a `device`/`user` condition
+  if that's not the intent.
 - **A rule points at a theme that no longer exists.** It is skipped safely
   (logged via `debugging()` when developer debugging is on) and the
   resolver moves on to the next rule; it does not break the page. The same

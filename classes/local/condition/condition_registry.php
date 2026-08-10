@@ -40,6 +40,7 @@ class condition_registry {
         'cohort' => cohort_condition::class,
         'device' => device_condition::class,
         'coursetag' => course_tag_condition::class,
+        'profilefield' => profile_field_condition::class,
     ];
 
     public static function has(string $identifier): bool {

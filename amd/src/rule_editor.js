@@ -32,17 +32,36 @@
 define([], function() {
 
     var DEFAULT_CONDITION_NODE = function(schema) {
-        return {
+        var node = {
             type: 'condition',
             condition: schema.identifier,
             operator: schema.operators[0],
             value: ''
         };
+        applyFieldDefaults(node, schema);
+        return node;
     };
 
     var DEFAULT_GROUP_NODE = function() {
         return {type: 'group', operator: 'and', children: []};
     };
+
+    /**
+     * Conditions with a "field" selector (e.g. profilefield's standard-vs-custom user profile
+     * field picker) need node.field/node.customfield seeded to the first option, the same way
+     * DEFAULT_CONDITION_NODE seeds operator/value - shared here since this runs both when a
+     * brand new condition node is created and when an existing node's condition type is
+     * switched to one that has fieldoptions (renderCondition()'s conditionSelect handler).
+     *
+     * @param {Object} node
+     * @param {Object} schema
+     */
+    function applyFieldDefaults(node, schema) {
+        if (schema.fieldoptions && schema.fieldoptions.length) {
+            node.field = schema.fieldoptions[0].value;
+            node.customfield = schema.fieldoptions[0].customfield;
+        }
+    }
 
     /**
      * @param {string} textareaId DOM id of the expressionjson textarea.
@@ -221,11 +240,40 @@ define([], function() {
                 node.condition = schema.identifier;
                 node.operator = schema.operators[0];
                 delete node.includechildren;
+                delete node.field;
+                delete node.customfield;
+                applyFieldDefaults(node, schema);
                 render();
             });
             row.appendChild(conditionSelect);
 
             var schema = schemasByIdentifier[node.condition] || conditionSchemas[0];
+
+            if (schema.fieldoptions) {
+                // Which field this condition checks (e.g. "Institution" vs a custom profile
+                // field) - a second picker alongside the condition type, not the value: offering
+                // every field this site actually has avoids an admin needing to already know
+                // and correctly type a field's internal shortname.
+                var fieldSelect = document.createElement('select');
+                fieldSelect.className = 'form-select form-select-sm w-auto';
+                fieldSelect.setAttribute('aria-label', strings.field);
+                schema.fieldoptions.forEach(function(option) {
+                    var optionEl = document.createElement('option');
+                    optionEl.value = option.value;
+                    optionEl.textContent = option.label;
+                    optionEl.selected = node.field === option.value;
+                    fieldSelect.appendChild(optionEl);
+                });
+                fieldSelect.addEventListener('change', function() {
+                    var chosen = schema.fieldoptions.filter(function(option) {
+                        return option.value === fieldSelect.value;
+                    })[0];
+                    node.field = fieldSelect.value;
+                    node.customfield = chosen ? chosen.customfield : false;
+                    sync();
+                });
+                row.appendChild(fieldSelect);
+            }
 
             var operatorSelect = document.createElement('select');
             operatorSelect.className = 'form-select form-select-sm w-auto';
@@ -273,8 +321,14 @@ define([], function() {
                 valueInput.placeholder = strings.value;
                 valueInput.value = node.value === undefined ? '' : node.value;
                 valueInput.addEventListener('input', function() {
-                    var numeric = parseInt(valueInput.value, 10);
-                    node.value = isNaN(numeric) ? valueInput.value : numeric;
+                    if (schema.stringvalue) {
+                        // Must stay a string even if it looks numeric (e.g. an idnumber value) -
+                        // see profile_field_condition's editor schema for why.
+                        node.value = valueInput.value;
+                    } else {
+                        var numeric = parseInt(valueInput.value, 10);
+                        node.value = isNaN(numeric) ? valueInput.value : numeric;
+                    }
                     sync();
                 });
             }
