@@ -118,6 +118,10 @@ $PAGE->requires->js_call_amd('local_themerules/rule_editor', 'init', [
         'operator' => get_string('editor_operator', 'local_themerules'),
         'value' => get_string('editor_value', 'local_themerules'),
         'includechildren' => get_string('editor_includechildren', 'local_themerules'),
+        'searchplaceholder' => get_string('editor_searchplaceholder', 'local_themerules'),
+        'loading' => get_string('editor_loading', 'local_themerules'),
+        'noresults' => get_string('editor_noresults', 'local_themerules'),
+        'choosecourse' => get_string('editor_choosecourse', 'local_themerules'),
     ],
 ]);
 

@@ -63,6 +63,31 @@ class cohort_condition implements condition_interface {
             'name' => $this->get_name(),
             'operators' => self::OPERATORS,
             'valuetype' => 'cohort',
+            // A real, populated <select> rather than a raw id input or a search picker - sites
+            // typically have a small, browsable number of cohorts (unlike user/course), so a
+            // plain dropdown of everything this site actually has is simpler than adding search.
+            'options' => self::cohort_options(),
+            // A <select>'s value is always a string in the DOM; this condition's value must stay
+            // a JSON number (validate() uses is_numeric(), evaluate() casts with (int)) - tells
+            // the JS builder to parseInt() on selection instead of storing the raw string, the
+            // same concern stringvalue solves in the opposite direction for profilefield.
+            'numericvalue' => true,
         ];
+    }
+
+    /**
+     * Every real cohort on this site, for the editor's populated <select>.
+     *
+     * @return array{value: int, label: string}[]
+     */
+    private static function cohort_options(): array {
+        global $DB;
+
+        $cohorts = $DB->get_records('cohort', null, 'name', 'id, name');
+
+        return array_values(array_map(
+            fn (\stdClass $cohort): array => ['value' => (int) $cohort->id, 'label' => format_string($cohort->name)],
+            $cohorts
+        ));
     }
 }

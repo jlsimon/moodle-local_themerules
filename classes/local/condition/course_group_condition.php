@@ -88,6 +88,17 @@ class course_group_condition implements condition_interface {
             'name' => $this->get_name(),
             'operators' => self::OPERATORS,
             'valuetype' => 'coursegroup',
+            // A group id alone isn't identifiable without knowing its course (the same group
+            // name can exist in many courses), so the JS builder renders a two-step cascade: a
+            // course search picker first, then a group search picker scoped to whichever course
+            // was chosen (local_themerules_search_entities' "courseid" parameter). The course
+            // choice itself is transient editor UI state, not persisted in the JSON - only the
+            // resulting group id is ever stored as `value`, same as every other condition.
+            'entitytype' => 'coursegroup',
+            'cascadefrom' => 'course',
+            // A synthetic choice alongside real search results, mirroring user_condition's
+            // "Anonymous" entry - group id 0 means "any group in the course" (DECISIONS.md).
+            'entityzerolabel' => get_string('editor_coursegroup_any', 'local_themerules'),
         ];
     }
 }

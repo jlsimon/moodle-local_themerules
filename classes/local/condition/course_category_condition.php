@@ -77,6 +77,25 @@ class course_category_condition implements condition_interface {
             'operators' => self::OPERATORS,
             'valuetype' => 'coursecategory',
             'supportsincludechildren' => true,
+            // A real, populated <select> rather than a raw id input - see cohort_condition's
+            // schema for the same reasoning (small, browsable list, no search needed).
+            'options' => self::category_options(),
+            'numericvalue' => true,
         ];
+    }
+
+    /**
+     * Every course category, labelled with its full ancestry path so two categories with the
+     * same name under different parents (e.g. two clients each with their own "IT" category)
+     * are still distinguishable in the dropdown.
+     *
+     * @return array{value: int, label: string}[]
+     */
+    private static function category_options(): array {
+        $options = [];
+        foreach (\core_course_category::make_categories_list() as $id => $path) {
+            $options[] = ['value' => (int) $id, 'label' => $path];
+        }
+        return $options;
     }
 }

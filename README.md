@@ -84,7 +84,12 @@ visual builder (`amd/src/rule_editor.js`) progressively enhances the same
 field with add/remove condition and group controls, AND/OR toggles, so in
 practice most administrators never need to type JSON by hand - but the
 textarea is always the real data channel, and still works if JavaScript is
-unavailable.
+unavailable. `user`/`course` values use a type-ahead search picker instead
+of a raw id (type a name/email or a course name to search); `cohort`/
+`coursecategory` render as a real dropdown of everything this site actually
+has; `coursegroup` is a two-step picker - choose a course first, then a
+group within it, since a group id alone isn't identifiable without knowing
+its course.
 
 Use **Simulate** (same admin page) to check, for a given user id and
 course id, exactly which rules match, why, and which theme *and* logo

@@ -120,6 +120,11 @@ $string['editor_field'] = 'Campo';
 $string['editor_operator'] = 'Operador';
 $string['editor_value'] = 'Valor';
 $string['editor_includechildren'] = 'Incluir subcategorías';
+$string['editor_searchplaceholder'] = 'Escribe para buscar…';
+$string['editor_loading'] = 'Cargando…';
+$string['editor_noresults'] = 'Sin resultados';
+$string['editor_choosecourse'] = 'Elige primero un curso';
+$string['editor_coursegroup_any'] = 'Cualquier grupo de este curso';
 
 // Simulator.
 $string['simulator'] = 'Simular';

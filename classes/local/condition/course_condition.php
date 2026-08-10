@@ -66,6 +66,9 @@ class course_condition implements condition_interface {
             'name' => $this->get_name(),
             'operators' => self::OPERATORS,
             'valuetype' => 'course',
+            // Type-ahead search picker, same reasoning as user_condition's - a site can have far
+            // too many courses for a plain <select>.
+            'entitytype' => 'course',
         ];
     }
 }

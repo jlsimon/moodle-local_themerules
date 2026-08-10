@@ -61,6 +61,15 @@ class user_condition implements condition_interface {
             'name' => $this->get_name(),
             'operators' => self::OPERATORS,
             'valuetype' => 'user',
+            // Tells the JS builder to render a type-ahead search picker (backed by
+            // local_themerules_search_entities/resolve_entity) instead of a raw numeric id
+            // input - a site can have far too many users for a plain <select>, unlike
+            // cohort/coursecategory's small fixed lists. The picker always offers a synthetic
+            // "Anonymous / not logged in" choice (id 0) alongside real search results - id 0 is
+            // a real, resolvable fact for this condition (SPECIFICATIONS.md/DECISIONS.md), not
+            // just an id the entity search would ever itself return.
+            'entitytype' => 'user',
+            'entityzerolabel' => get_string('trace_anonymous', 'local_themerules'),
         ];
     }
 }

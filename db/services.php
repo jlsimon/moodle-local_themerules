@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version information.
+ * External functions (AJAX web services) for local_themerules.
  *
  * @package    local_themerules
  * @copyright  2026 Jose Luis Simon
@@ -24,8 +24,21 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_themerules';
-$plugin->version = 2026081104;
-$plugin->requires = 2024100700; // Moodle 4.5.
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->release = '0.9.5-entity-pickers';
+$functions = [
+    'local_themerules_search_entities' => [
+        'classname' => 'local_themerules\external\search_entities',
+        'methodname' => 'execute',
+        'description' => 'Type-ahead search for the rule editor\'s user/course/coursegroup pickers.',
+        'type' => 'read',
+        'ajax' => true,
+        'loginrequired' => true,
+    ],
+    'local_themerules_resolve_entity' => [
+        'classname' => 'local_themerules\external\resolve_entity',
+        'methodname' => 'execute',
+        'description' => 'Resolves an entity id to a display label, to pre-fill a picker when editing an existing rule.',
+        'type' => 'read',
+        'ajax' => true,
+        'loginrequired' => true,
+    ],
+];
