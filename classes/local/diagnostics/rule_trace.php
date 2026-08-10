@@ -37,8 +37,11 @@ class rule_trace {
     /** @var array{text: string, result: bool}[] Flattened per-condition checks, in tree order. */
     public array $conditionlines;
 
-    /** @var string|null The theme this rule would apply, if it matched and won; null otherwise. */
+    /** @var string|null The theme this rule would apply, if it matched and won that axis; null otherwise. */
     public ?string $theme;
+
+    /** @var string|null The logo name this rule would apply, if it matched and won that axis; null otherwise. */
+    public ?string $logo;
 
     public function __construct(
         int $ruleid,
@@ -46,7 +49,8 @@ class rule_trace {
         int $priority,
         bool $matched,
         array $conditionlines,
-        ?string $theme
+        ?string $theme,
+        ?string $logo = null
     ) {
         $this->ruleid = $ruleid;
         $this->rulename = $rulename;
@@ -54,5 +58,6 @@ class rule_trace {
         $this->matched = $matched;
         $this->conditionlines = $conditionlines;
         $this->theme = $theme;
+        $this->logo = $logo;
     }
 }

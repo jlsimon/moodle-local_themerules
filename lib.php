@@ -47,7 +47,44 @@ function local_themerules_after_require_login(
         return;
     }
 
-    \local_themerules\local\engine\theme_resolution::apply(
+    \local_themerules\local\engine\session_resolution::apply(
         \local_themerules\local\engine\fact_provider::create_for_course((int) ($USER->id ?? 0), $course)
     );
+}
+
+/**
+ * Serves an uploaded logo asset (component local_themerules, filearea "logo" - see
+ * db/install.xml's local_themerules_logo table and hook_listener::before_standard_head_html_generation()).
+ *
+ * No require_login() call, deliberately: the logo is shown in the navbar of every page,
+ * including to guests and unauthenticated visitors on the login page, so it must be servable
+ * without a session - same treatment as core_admin_pluginfile()'s own site logo/logocompact
+ * fileareas (admin/lib.php), which carries the identical "anyone, including guests, can view
+ * the logos" comment. This is a system-context file area, so file_pluginfile() (lib/filelib.php)
+ * dispatches straight to this function with no access check of its own.
+ *
+ * @param stdClass|null $course
+ * @param stdClass|null $cm
+ * @param context $context
+ * @param string $filearea
+ * @param array $args
+ * @param bool $forcedownload
+ * @param array $options
+ */
+function local_themerules_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
+    if ($context->contextlevel !== CONTEXT_SYSTEM || $filearea !== 'logo') {
+        send_file_not_found();
+    }
+
+    $itemid = (int) array_shift($args);
+    $filename = array_pop($args);
+    $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
+
+    $fs = get_file_storage();
+    $file = $fs->get_file($context->id, 'local_themerules', 'logo', $itemid, $filepath, $filename);
+    if (!$file || $file->is_directory()) {
+        send_file_not_found();
+    }
+
+    send_stored_file($file, DAYSECS, 0, $forcedownload, ['cacheability' => 'public']);
 }

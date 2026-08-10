@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_themerules';
-$plugin->version = 2026081001;
+$plugin->version = 2026081003;
 $plugin->requires = 2024100700; // Moodle 4.5.
 $plugin->maturity = MATURITY_ALPHA;
-$plugin->release = '0.8.2-coursetag-condition';
+$plugin->release = '0.9.0-logo-action';

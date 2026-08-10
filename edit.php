@@ -70,7 +70,7 @@ if ($data = $form->get_data()) {
         'enabled' => !empty($data->enabled) ? 1 : 0,
         'priority' => (int) $data->priority,
         'expressionjson' => trim($data->expressionjson),
-        'actionjson' => rule_validator::build_action_json($data->theme),
+        'actionjson' => rule_validator::build_action_json($data->theme, (int) $data->logoid ?: null),
         'timestart' => (int) $data->timestart,
         'timeend' => (int) $data->timeend,
     ];
@@ -97,6 +97,7 @@ if ($record) {
         'enabled' => $record->enabled,
         'priority' => $record->priority,
         'theme' => rule_validator::extract_theme($record->actionjson),
+        'logoid' => rule_validator::extract_logoid($record->actionjson) ?? 0,
         'expressionjson' => $record->expressionjson,
         'timestart' => $record->timestart,
         'timeend' => $record->timeend,

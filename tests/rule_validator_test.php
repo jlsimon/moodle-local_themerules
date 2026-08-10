@@ -31,6 +31,11 @@ use local_themerules\local\validation\rule_validator;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(rule_validator::class)]
 final class rule_validator_test extends \advanced_testcase {
+    protected function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest(true);
+    }
+
     private function valid_data(array $overrides = []): array {
         return array_merge([
             'name' => 'My rule',
@@ -39,6 +44,19 @@ final class rule_validator_test extends \advanced_testcase {
                 'operator' => 'is', 'value' => 5]),
             'theme' => 'boost',
         ], $overrides);
+    }
+
+    private function create_logo(): int {
+        global $DB;
+
+        $now = time();
+        return (int) $DB->insert_record('local_themerules_logo', (object) [
+            'name' => 'Test logo',
+            'filename' => 'test.png',
+            'timecreated' => $now,
+            'timemodified' => $now,
+            'usermodified' => 2,
+        ]);
     }
 
     public function test_valid_data_has_no_errors(): void {
@@ -88,5 +106,50 @@ final class rule_validator_test extends \advanced_testcase {
         $json = rule_validator::build_action_json('boost');
 
         $this->assertSame('boost', rule_validator::extract_theme($json));
+    }
+
+    public function test_logo_only_rule_is_not_rejected_for_missing_theme(): void {
+        $logoid = $this->create_logo();
+
+        $errors = rule_validator::validate($this->valid_data(['theme' => '', 'logoid' => $logoid]));
+
+        $this->assertSame([], $errors);
+    }
+
+    public function test_neither_theme_nor_logo_is_rejected(): void {
+        $errors = rule_validator::validate($this->valid_data(['theme' => '']));
+
+        $this->assertArrayHasKey('theme', $errors);
+    }
+
+    public function test_nonexistent_logo_is_rejected(): void {
+        $errors = rule_validator::validate($this->valid_data(['theme' => '', 'logoid' => 999999]));
+
+        $this->assertArrayHasKey('logoid', $errors);
+    }
+
+    public function test_build_and_extract_action_json_round_trip_with_logo(): void {
+        $logoid = $this->create_logo();
+
+        $json = rule_validator::build_action_json('boost', $logoid);
+
+        $this->assertSame('boost', rule_validator::extract_theme($json));
+        $this->assertSame($logoid, rule_validator::extract_logoid($json));
+    }
+
+    public function test_build_action_json_logo_only(): void {
+        $logoid = $this->create_logo();
+
+        $json = rule_validator::build_action_json('', $logoid);
+
+        $this->assertSame('', rule_validator::extract_theme($json));
+        $this->assertSame($logoid, rule_validator::extract_logoid($json));
+    }
+
+    public function test_extract_theme_and_logoid_from_legacy_single_object_format(): void {
+        $legacy = json_encode(['type' => 'theme', 'theme' => 'boost']);
+
+        $this->assertSame('boost', rule_validator::extract_theme($legacy));
+        $this->assertNull(rule_validator::extract_logoid($legacy));
     }
 }

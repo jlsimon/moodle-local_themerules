@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Resolves the theme to use for the given facts, or null to leave Moodle's
+ * Resolves every action axis (theme, logo, ...) for the given facts, or leaves
  *
  * @package    local_themerules
  * @copyright  2026 Jose Luis Simon
@@ -28,14 +28,27 @@ use local_themerules\local\action\action_registry;
 use local_themerules\local\repository\rule_repository;
 
 /**
- * Resolves the theme to use for the given facts, or null to leave Moodle's
- * normal theme resolution untouched. See SPECIFICATIONS.md section 7.
+ * Resolves every action axis (theme, logo, ...) for the given facts, independently, walking the
+ * same priority-ordered rule list once. See SPECIFICATIONS.md section 7 and DECISIONS.md for why
+ * a single rule can carry more than one action and why each axis resolves independently: a
+ * lower-priority rule can still fill in an axis a higher-priority matching rule left unset,
+ * without ever overriding an axis that rule already claimed.
  */
 class resolver {
-    public static function resolve_theme(evaluation_context $context, ?rule_repository $repository = null): ?string {
+    /**
+     * Resolves every axis at once.
+     *
+     * @return array<string, string> Axis identifier (action_interface::get_identifier(), e.g.
+     *         "theme"/"logo") => resolved value. An axis with no matching rule, or where every
+     *         matching rule's action for it declined (SPECIFICATIONS.md section 18), is simply
+     *         absent from the array - callers must use `$resolved['theme'] ?? null`, not assume
+     *         every axis is present.
+     */
+    public static function resolve(evaluation_context $context, ?rule_repository $repository = null): array {
         $repository ??= new rule_repository();
         $evaluator = new evaluator();
         $now = time();
+        $resolved = [];
 
         foreach ($repository->get_enabled_rules_ordered() as $rule) {
             if (!$rule->is_active_at($now)) {
@@ -50,17 +63,24 @@ class resolver {
                     continue;
                 }
 
-                $actionconfig = json_decode($rule->get_action_json(), true);
-                if (!is_array($actionconfig) || empty($actionconfig['type'])) {
-                    throw new \coding_exception('local_themerules: invalid action JSON');
-                }
+                foreach (self::decode_actions($rule->get_action_json()) as $actionconfig) {
+                    $type = $actionconfig['type'] ?? '';
+                    if ($type === '' || array_key_exists($type, $resolved)) {
+                        // No type, or this axis was already claimed by a higher-priority rule:
+                        // nothing for this action to contribute.
+                        continue;
+                    }
+                    if (!action_registry::has($type)) {
+                        throw new \coding_exception('local_themerules: unknown action identifier: ' . $type);
+                    }
 
-                $theme = action_registry::get($actionconfig['type'])->apply($actionconfig, $context);
-                if ($theme !== null) {
-                    return $theme;
+                    $value = action_registry::get($type)->apply($actionconfig, $context);
+                    if ($value !== null) {
+                        $resolved[$type] = $value;
+                    }
+                    // Action declined (e.g. theme/logo no longer exists): leave this axis open for
+                    // a lower-priority rule, per SPECIFICATIONS.md section 18.
                 }
-                // Action declined (e.g. theme no longer installed): fall through to the next rule
-                // rather than stopping, per SPECIFICATIONS.md section 18.
             } catch (\Throwable $e) {
                 // A single corrupt/invalid rule must never break the page (SPECIFICATIONS.md
                 // section 49): log it and keep evaluating the remaining rules.
@@ -70,6 +90,41 @@ class resolver {
             }
         }
 
-        return null;
+        return $resolved;
+    }
+
+    /**
+     * Convenience wrapper for the (still by far the most common) theme-only case.
+     */
+    public static function resolve_theme(evaluation_context $context, ?rule_repository $repository = null): ?string {
+        return self::resolve($context, $repository)['theme'] ?? null;
+    }
+
+    /**
+     * A rule's actionjson is either a single action node (the format every rule used before the
+     * `logo` action existed - kept working forever, not just as a migration window, since a
+     * theme-only rule never needs the list form) or a list of action nodes (needed once a rule
+     * sets more than one axis, e.g. theme + logo together).
+     *
+     * @return array[] Action nodes, each with at least a "type" key.
+     */
+    private static function decode_actions(string $actionjson): array {
+        $decoded = json_decode($actionjson, true);
+
+        if (!is_array($decoded)) {
+            throw new \coding_exception('local_themerules: invalid action JSON');
+        }
+
+        // A single action node is a JSON object (decodes to an assoc array with a "type" key);
+        // a list of nodes is a JSON array (decodes to a sequential array of such objects).
+        $actions = array_key_exists('type', $decoded) ? [$decoded] : $decoded;
+
+        foreach ($actions as $action) {
+            if (!is_array($action)) {
+                throw new \coding_exception('local_themerules: invalid action node');
+            }
+        }
+
+        return $actions;
     }
 }

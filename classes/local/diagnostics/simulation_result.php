@@ -36,9 +36,13 @@ class simulation_result {
 
     public ?string $selectedtheme;
 
-    public function __construct(array $facts, array $ruletraces, ?string $selectedtheme) {
+    /** @var string|null Display name of the logo that would be applied, or null. */
+    public ?string $selectedlogo;
+
+    public function __construct(array $facts, array $ruletraces, ?string $selectedtheme, ?string $selectedlogo = null) {
         $this->facts = $facts;
         $this->ruletraces = $ruletraces;
         $this->selectedtheme = $selectedtheme;
+        $this->selectedlogo = $selectedlogo;
     }
 }

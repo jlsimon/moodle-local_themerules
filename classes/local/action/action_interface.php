@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Contract every rule action type (currently only "theme") implements. See
+ * Contract every rule action type ("theme", "logo") implements. See
  *
  * @package    local_themerules
  * @copyright  2026 Jose Luis Simon
@@ -27,12 +27,19 @@ namespace local_themerules\local\action;
 use local_themerules\local\engine\evaluation_context;
 
 /**
- * Contract every rule action type (currently only "theme") implements. See
- * SPECIFICATIONS.md section 18.
+ * Contract every rule action type ("theme", "logo") implements. See SPECIFICATIONS.md
+ * section 18.
+ *
+ * A rule's action JSON is a list of action nodes (see resolver.php), each independently
+ * resolved by its own identifier - so a single rule can set a theme, a logo, both, or (with a
+ * future action type) more, without any one action type needing to know about the others. The
+ * resolver treats get_identifier()'s value as that action's independent "axis": the first rule
+ * (in priority order) whose action for a given axis returns non-null wins that axis, regardless
+ * of what any other axis on the same or a different rule resolved to.
  */
 interface action_interface {
     /**
-     * Identifier used in action JSON, e.g. "theme".
+     * Identifier used in action JSON, e.g. "theme" - also the axis name the resolver tracks.
      */
     public function get_identifier(): string;
 
@@ -48,7 +55,9 @@ interface action_interface {
      * Applies this action for the given facts.
      *
      * @param array $config The action node (type, ...).
-     * @return string|null The theme to use, or null if this action does not select a theme.
+     * @return string|null This action's resolved value for its own axis (e.g. a theme name, or a
+     *         logo asset id), or null if this action does not resolve on this axis (e.g. it
+     *         references an entity that has since been deleted).
      */
     public function apply(array $config, evaluation_context $context): ?string;
 }

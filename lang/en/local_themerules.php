@@ -62,6 +62,16 @@ $string['notify_saved'] = 'Rule saved.';
 $string['notify_updated'] = 'Rule updated.';
 $string['notify_duplicated'] = 'Rule duplicated (created disabled).';
 $string['notify_deleted'] = 'Rule deleted.';
+$string['notify_logo_saved'] = 'Logo saved.';
+$string['notify_logo_deleted'] = 'Logo deleted.';
+
+// Logo library (logos.php).
+$string['logos'] = 'Logos';
+$string['nologos'] = 'No logos have been uploaded yet.';
+$string['logopreview'] = 'Preview';
+$string['form_logoname'] = 'Logo name';
+$string['form_logofile'] = 'Logo image';
+$string['confirm_delete_logo'] = 'Delete logo "{$a}"? Any rule still referencing it will simply stop applying a logo, same as an uninstalled theme.';
 
 // Form.
 $string['form_name'] = 'Rule name';
@@ -69,6 +79,8 @@ $string['form_description'] = 'Description';
 $string['form_enabled'] = 'Enabled';
 $string['form_priority'] = 'Priority';
 $string['form_theme'] = 'Apply theme';
+$string['form_logo'] = 'Apply logo';
+$string['form_logo_none'] = "Don't change the logo";
 $string['form_expression'] = 'Condition expression (JSON)';
 $string['form_expression_help'] = 'A logical condition tree in JSON. Example:
 
@@ -86,8 +98,9 @@ $string['form_save'] = 'Save rule';
 $string['error_name_required'] = 'Please give this rule a name.';
 $string['error_priority_invalid'] = 'Priority must be a number.';
 $string['error_expression_invalid'] = 'Invalid condition expression: {$a}';
-$string['error_theme_required'] = 'Please choose a theme.';
 $string['error_theme_invalid'] = 'Invalid theme: {$a}';
+$string['error_logo_invalid'] = 'Invalid logo: {$a}';
+$string['error_action_required'] = 'Choose a theme, a logo, or both - a rule with neither would do nothing.';
 $string['error_timeend_before_timestart'] = '"Valid until" must be after "Valid from".';
 
 // Visual rule editor (JS).
@@ -115,9 +128,13 @@ $string['simulator_notmatched'] = 'Did not match';
 $string['simulator_resulttrue'] = 'Result: TRUE';
 $string['simulator_resultfalse'] = 'Result: FALSE';
 $string['simulator_wouldselect'] = '→ would select theme "{$a}"';
+$string['simulator_wouldselectlogo'] = '→ would apply logo "{$a}"';
 $string['simulator_selectedtheme'] = 'Selected theme';
 $string['simulator_selectedthemevalue'] = 'Theme "{$a}" would be selected.';
 $string['simulator_nomatch'] = 'No rule matches. Normal Moodle theme resolution would apply.';
+$string['simulator_selectedlogo'] = 'Selected logo';
+$string['simulator_selectedlogovalue'] = 'Logo "{$a}" would be applied.';
+$string['simulator_nologomatch'] = 'No rule matches. The site\'s normal logo would be shown.';
 $string['simulator_devicetype'] = 'Device type';
 $string['simulator_devicetype_auto'] = 'Auto-detect (your current browser)';
 

@@ -1,8 +1,9 @@
 # local_themerules
 
-A Moodle local plugin that dynamically selects the theme shown to a user
-according to configurable logical rules (`condition expression -> theme`),
-evaluated server-side before Moodle renders the page.
+A Moodle local plugin that dynamically selects the theme and/or navbar logo
+shown to a user according to configurable logical rules (`condition
+expression -> theme and/or logo`), evaluated server-side before Moodle
+renders the page.
 
 ## Purpose
 
@@ -50,8 +51,27 @@ Standard Moodle plugin installation:
 1. Go to *Site administration > Appearance > Theme rules*.
 2. Click **Create rule**.
 3. Give it a name, a priority (higher wins when several rules match),
-   choose the theme to apply, and enter the condition expression.
+   choose the theme and/or logo to apply, and enter the condition
+   expression. Theme and logo are independent - a rule can set either,
+   both, or (leaving both blank) will be rejected as doing nothing.
 4. Tick **Enabled** and save.
+
+Theme and logo resolve independently across the whole rule set, not just
+within one rule: if a higher-priority rule already set the theme, a lower-
+priority rule can still supply the logo (or vice versa) without overriding
+what the higher-priority rule already claimed. This is what lets several
+rules share one theme while only varying the logo, without repeating the
+theme choice in each of them - see the examples below.
+
+### Logo library
+
+Logos are managed separately from rules, at *Theme rules > Logos*: upload
+an image once, give it a name, and it becomes selectable from any rule's
+**Apply logo** dropdown. Uploading the same logo again under a different
+rule reuses the same asset rather than duplicating the file. Only the
+navbar/compact logo is affected (the one shown on most pages); the full
+site logo used on the login page is Moodle's own single site-wide setting
+and is not touched by this plugin.
 
 The condition expression is entered as JSON in this first release; a
 visual builder (`amd/src/rule_editor.js`) progressively enhances the same
@@ -61,11 +81,18 @@ textarea is always the real data channel, and still works if JavaScript is
 unavailable.
 
 Use **Simulate** (same admin page) to check, for a given user id and
-course id, exactly which rules match, why, and which theme would be
-selected - without affecting anyone's actual session. It also lets you
-override the device type being simulated (auto-detected from your own
-browser by default), so you can test a `device` rule as "what if this were
-a tablet" without needing an actual tablet.
+course id, exactly which rules match, why, and which theme *and* logo
+would be selected - without affecting anyone's actual session. It also
+lets you override the device type being simulated (auto-detected from your
+own browser by default), so you can test a `device` rule as "what if this
+were a tablet" without needing an actual tablet.
+
+### Action types
+
+| Type | Value | Notes |
+|---|---|---|
+| `theme` | A theme's directory name, e.g. `"boost"`. | Skipped safely (falls through to the next matching rule) if the theme has since been uninstalled. |
+| `logo` | A logo asset id from the logo library (`logoid`). | Skipped safely if the logo has since been deleted. Applied via a small CSS override injected into every page's `<head>`, not by changing any Moodle-wide setting - see DECISIONS.md for why (the site logo has no per-request resolution mechanism to hook into, unlike the theme). |
 
 ### Condition identifiers
 
@@ -101,6 +128,31 @@ Any course tagged "exam-mode" gets a distraction-free theme:
 ```json
 {"type": "condition", "condition": "coursetag", "operator": "has", "value": "exam-mode"}
 ```
+
+Cohort "Company A" gets both a theme and a matching logo from one rule.
+The condition expression is unchanged from the earlier examples; what is
+new here is the *action*, which the admin UI builds automatically from the
+**Apply theme**/**Apply logo** fields as a list rather than a single value,
+so a rule can set more than one axis:
+
+Condition expression:
+
+```json
+{"type": "condition", "condition": "cohort", "operator": "member", "value": 7}
+```
+
+Action:
+
+```json
+[
+  {"type": "theme", "theme": "boost"},
+  {"type": "logo", "logoid": 3}
+]
+```
+
+A rule only setting a logo (leaving whatever theme a higher-priority rule
+already chose untouched) uses a single-element action list:
+`[{"type": "logo", "logoid": 3}]`.
 
 Course + cohort combination:
 
@@ -161,7 +213,16 @@ combined with an OR of two cohorts:
   run *Site administration > Development > Purge caches*.
 - **A rule points at a theme that no longer exists.** It is skipped safely
   (logged via `debugging()` when developer debugging is on) and the
-  resolver moves on to the next rule; it does not break the page.
+  resolver moves on to the next rule; it does not break the page. The same
+  applies to a rule pointing at a deleted logo.
+- **The logo doesn't change even though the rule matches.** Only the
+  navbar/compact logo is affected - if your theme renders it as something
+  other than an `<img class="logo">` (most Boost-family themes do; a
+  heavily customised theme might not), the CSS override this plugin
+  injects has nothing to target. Check the page source for a
+  `<style>img.logo { content: url(...) }</style>` block in `<head>`; if
+  it's missing, the rule didn't match; if it's present but nothing
+  changes, the theme's own markup is the mismatch.
 - **Nothing changes even with rules enabled.** Check the plugin is enabled
   and that `local/themerules:view`/`:manage` capabilities are granted to
   the account trying to administer rules (Site administrator and the

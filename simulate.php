@@ -140,6 +140,13 @@ if ($userid > 0) {
                 ['class' => 'ms-2 fw-bold']
             );
         }
+        if ($trace->logo !== null) {
+            echo ' ' . html_writer::tag(
+                'span',
+                get_string('simulator_wouldselectlogo', 'local_themerules', s($trace->logo)),
+                ['class' => 'ms-2 fw-bold']
+            );
+        }
         echo html_writer::end_div();
         echo html_writer::end_div();
     }
@@ -150,6 +157,14 @@ if ($userid > 0) {
             ? get_string('simulator_selectedthemevalue', 'local_themerules', s($result->selectedtheme))
             : get_string('simulator_nomatch', 'local_themerules'),
         $result->selectedtheme !== null ? 'success' : 'info'
+    );
+
+    echo $OUTPUT->heading(get_string('simulator_selectedlogo', 'local_themerules'), 3);
+    echo $OUTPUT->notification(
+        $result->selectedlogo !== null
+            ? get_string('simulator_selectedlogovalue', 'local_themerules', s($result->selectedlogo))
+            : get_string('simulator_nologomatch', 'local_themerules'),
+        $result->selectedlogo !== null ? 'success' : 'info'
     );
 }
 

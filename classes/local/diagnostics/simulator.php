@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Builds a human-readable trace of how the resolver would decide the theme for a
+ * Builds a human-readable trace of how the resolver would decide every action axis
  *
  * @package    local_themerules
  * @copyright  2026 Jose Luis Simon
@@ -31,8 +31,8 @@ use local_themerules\local\engine\expression_parser;
 use local_themerules\local\repository\rule_repository;
 
 /**
- * Builds a human-readable trace of how the resolver would decide the theme for a
- * given user/course, for the "Simulate" admin page. See SPECIFICATIONS.md
+ * Builds a human-readable trace of how the resolver would decide every action axis (theme,
+ * logo, ...) for a given user/course, for the "Simulate" admin page. See SPECIFICATIONS.md
  * section 31.
  *
  * Deliberately separate from engine\resolver/evaluator rather than adding a trace
@@ -42,12 +42,16 @@ use local_themerules\local\repository\rule_repository;
  * admin-only, on-demand tool, never called from the request path that resolves the
  * live theme (SPECIFICATIONS.md section 76: runtime evaluation must stay cheap and
  * deterministic; this class does not run there).
+ *
+ * Mirrors resolver.php's per-axis resolution algorithm (a rule can win one axis while a
+ * higher-priority rule already claimed another) so the trace accurately reflects what would
+ * really happen, not an approximation of it.
  */
 class simulator {
     public static function run(evaluation_context $context, ?rule_repository $repository = null): simulation_result {
         $repository ??= new rule_repository();
         $now = time();
-        $selectedtheme = null;
+        $resolved = []; // Axis type => resolved value, same shape as resolver::resolve().
         $traces = [];
 
         foreach ($repository->get_enabled_rules_ordered() as $rule) {
@@ -59,16 +63,26 @@ class simulator {
                 $expression = (new expression_parser())->parse($rule->get_expression_json());
                 $traced = self::trace_node($expression, $context);
 
-                $theme = null;
-                if ($traced['result'] && $selectedtheme === null) {
-                    $actionconfig = json_decode($rule->get_action_json(), true);
-                    if (
-                        is_array($actionconfig) && !empty($actionconfig['type'])
-                            && action_registry::has($actionconfig['type'])
-                    ) {
-                        $theme = action_registry::get($actionconfig['type'])->apply($actionconfig, $context);
-                        if ($theme !== null) {
-                            $selectedtheme = $theme;
+                $rulewontheme = null;
+                $rulewonlogo = null;
+
+                if ($traced['result']) {
+                    foreach (self::decode_actions($rule->get_action_json()) as $actionconfig) {
+                        $type = $actionconfig['type'] ?? '';
+                        if ($type === '' || array_key_exists($type, $resolved) || !action_registry::has($type)) {
+                            continue;
+                        }
+
+                        $value = action_registry::get($type)->apply($actionconfig, $context);
+                        if ($value === null) {
+                            continue;
+                        }
+
+                        $resolved[$type] = $value;
+                        if ($type === 'theme') {
+                            $rulewontheme = $value;
+                        } else if ($type === 'logo') {
+                            $rulewonlogo = self::logo_name((int) $value);
                         }
                     }
                 }
@@ -79,7 +93,8 @@ class simulator {
                     $rule->get_priority(),
                     $traced['result'],
                     $traced['lines'],
-                    $theme
+                    $rulewontheme,
+                    $rulewonlogo
                 );
             } catch (\Throwable $e) {
                 $traces[] = new rule_trace(
@@ -93,7 +108,26 @@ class simulator {
             }
         }
 
-        return new simulation_result(self::describe_facts($context), $traces, $selectedtheme);
+        $selectedlogo = array_key_exists('logo', $resolved) ? self::logo_name((int) $resolved['logo']) : null;
+
+        return new simulation_result(self::describe_facts($context), $traces, $resolved['theme'] ?? null, $selectedlogo);
+    }
+
+    /**
+     * Decodes a rule's actionjson into a list of action nodes.
+     *
+     * @return array[] Action nodes, tolerating both the legacy single-object shape and the
+     *         current list shape - same small independent copy as rule_validator.php's
+     *         decode_actions(), see that method's docblock for why it is not shared.
+     */
+    private static function decode_actions(string $actionjson): array {
+        $decoded = json_decode($actionjson, true);
+
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        return array_key_exists('type', $decoded) ? [$decoded] : $decoded;
     }
 
     /**
@@ -222,6 +256,12 @@ class simulator {
         global $DB;
         $cohort = $DB->get_record('cohort', ['id' => $id], 'id, name', IGNORE_MISSING);
         return $cohort ? format_string($cohort->name) . " (id {$id})" : self::not_found($id);
+    }
+
+    private static function logo_name(int $id): string {
+        global $DB;
+        $logo = $DB->get_record('local_themerules_logo', ['id' => $id], 'id, name', IGNORE_MISSING);
+        return $logo ? format_string($logo->name) . " (id {$id})" : self::not_found($id);
     }
 
     /**

@@ -31,6 +31,7 @@ class action_registry {
     /** @var array<string, class-string<action_interface>> */
     private const ACTIONS = [
         'theme' => theme_action::class,
+        'logo' => logo_action::class,
     ];
 
     public static function has(string $identifier): bool {

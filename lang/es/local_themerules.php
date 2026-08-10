@@ -62,6 +62,16 @@ $string['notify_saved'] = 'Regla guardada.';
 $string['notify_updated'] = 'Regla actualizada.';
 $string['notify_duplicated'] = 'Regla duplicada (creada desactivada).';
 $string['notify_deleted'] = 'Regla eliminada.';
+$string['notify_logo_saved'] = 'Logo guardado.';
+$string['notify_logo_deleted'] = 'Logo eliminado.';
+
+// Biblioteca de logos (logos.php).
+$string['logos'] = 'Logos';
+$string['nologos'] = 'Todavía no se ha subido ningún logo.';
+$string['logopreview'] = 'Vista previa';
+$string['form_logoname'] = 'Nombre del logo';
+$string['form_logofile'] = 'Imagen del logo';
+$string['confirm_delete_logo'] = '¿Eliminar el logo "{$a}"? Cualquier regla que todavía lo use simplemente dejará de aplicar un logo, igual que con un tema desinstalado.';
 
 // Form.
 $string['form_name'] = 'Nombre de la regla';
@@ -69,6 +79,8 @@ $string['form_description'] = 'Descripción';
 $string['form_enabled'] = 'Activada';
 $string['form_priority'] = 'Prioridad';
 $string['form_theme'] = 'Aplicar tema';
+$string['form_logo'] = 'Aplicar logo';
+$string['form_logo_none'] = 'No cambiar el logo';
 $string['form_expression'] = 'Expresión de condición (JSON)';
 $string['form_expression_help'] = 'Un árbol de condiciones lógicas en JSON. Ejemplo:
 
@@ -86,8 +98,9 @@ $string['form_save'] = 'Guardar regla';
 $string['error_name_required'] = 'Indica un nombre para esta regla.';
 $string['error_priority_invalid'] = 'La prioridad debe ser un número.';
 $string['error_expression_invalid'] = 'Expresión de condición no válida: {$a}';
-$string['error_theme_required'] = 'Elige un tema.';
 $string['error_theme_invalid'] = 'Tema no válido: {$a}';
+$string['error_logo_invalid'] = 'Logo no válido: {$a}';
+$string['error_action_required'] = 'Elige un tema, un logo, o ambos - una regla sin ninguno de los dos no haría nada.';
 $string['error_timeend_before_timestart'] = '"Válida hasta" debe ser posterior a "Válida desde".';
 
 // Visual rule editor (JS).
@@ -115,9 +128,13 @@ $string['simulator_notmatched'] = 'No coincide';
 $string['simulator_resulttrue'] = 'Resultado: VERDADERO';
 $string['simulator_resultfalse'] = 'Resultado: FALSO';
 $string['simulator_wouldselect'] = '→ seleccionaría el tema "{$a}"';
+$string['simulator_wouldselectlogo'] = '→ aplicaría el logo "{$a}"';
 $string['simulator_selectedtheme'] = 'Tema seleccionado';
 $string['simulator_selectedthemevalue'] = 'Se seleccionaría el tema "{$a}".';
 $string['simulator_nomatch'] = 'Ninguna regla coincide. Se aplicaría la resolución de tema normal de Moodle.';
+$string['simulator_selectedlogo'] = 'Logo seleccionado';
+$string['simulator_selectedlogovalue'] = 'Se aplicaría el logo "{$a}".';
+$string['simulator_nologomatch'] = 'Ninguna regla coincide. Se mostraría el logo normal del sitio.';
 $string['simulator_devicetype'] = 'Tipo de dispositivo';
 $string['simulator_devicetype_auto'] = 'Detectar automáticamente (tu navegador actual)';
 

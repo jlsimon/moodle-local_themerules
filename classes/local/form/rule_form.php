@@ -24,6 +24,7 @@
 
 namespace local_themerules\local\form;
 
+use local_themerules\local\repository\logo_repository;
 use local_themerules\local\validation\rule_validator;
 
 defined('MOODLE_INTERNAL') || die();
@@ -63,8 +64,14 @@ class rule_form extends \moodleform {
         $mform->addRule('priority', get_string('required'), 'required', null, 'client');
         $mform->setDefault('priority', 0);
 
+        // Theme and logo are each optional (DECISIONS.md: independent axes) - server-side
+        // validation (rule_validator::validate()) requires at least one of the two, but neither
+        // can carry a client-side "required" rule on its own without wrongly blocking a
+        // logo-only or theme-only rule.
         $mform->addElement('select', 'theme', get_string('form_theme', 'local_themerules'), $this->theme_options());
-        $mform->addRule('theme', get_string('required'), 'required', null, 'client');
+
+        $mform->addElement('select', 'logoid', get_string('form_logo', 'local_themerules'), $this->logo_options());
+        $mform->setType('logoid', PARAM_INT);
 
         $mform->addElement(
             'textarea',
@@ -96,6 +103,14 @@ class rule_form extends \moodleform {
         $options = ['' => get_string('choosedots')];
         foreach (array_keys(\core_component::get_plugin_list('theme')) as $theme) {
             $options[$theme] = $theme;
+        }
+        return $options;
+    }
+
+    private function logo_options(): array {
+        $options = ['0' => get_string('form_logo_none', 'local_themerules')];
+        foreach ((new logo_repository())->get_all_records_ordered() as $logo) {
+            $options[(string) $logo->id] = $logo->name;
         }
         return $options;
     }

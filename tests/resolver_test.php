@@ -60,6 +60,19 @@ final class resolver_test extends \advanced_testcase {
         return (int) $DB->insert_record('local_themerules_rule', (object) $record);
     }
 
+    private function create_logo(): int {
+        global $DB;
+
+        $now = time();
+        return (int) $DB->insert_record('local_themerules_logo', (object) [
+            'name' => 'Test logo',
+            'filename' => 'test.png',
+            'timecreated' => $now,
+            'timemodified' => $now,
+            'usermodified' => 2,
+        ]);
+    }
+
     /**
      * SPECIFICATIONS.md section 61, Phase 1 acceptance test:
      * Rule: user = 123 -> boost. User 123: boost selected. Other user: normal Moodle theme.
@@ -226,5 +239,113 @@ final class resolver_test extends \advanced_testcase {
 
         // Tier A context (DECISIONS.md "Phase 2"): no course known yet.
         $this->assertNull(resolver::resolve_theme(new evaluation_context(123)));
+    }
+
+    /**
+     * DECISIONS.md "Phase 9 (partial, continued): logo action": theme and logo are independent
+     * axes - a single rule can carry both, in the list-of-action-nodes format.
+     */
+    public function test_single_rule_resolves_theme_and_logo_together(): void {
+        $logoid = $this->create_logo();
+        $this->create_rule([
+            'actionjson' => json_encode([
+                ['type' => 'theme', 'theme' => 'boost'],
+                ['type' => 'logo', 'logoid' => $logoid],
+            ]),
+        ]);
+
+        $resolved = resolver::resolve(new evaluation_context(123));
+
+        $this->assertSame('boost', $resolved['theme']);
+        $this->assertSame((string) $logoid, $resolved['logo']);
+    }
+
+    /**
+     * A lower-priority rule can still fill in an axis a higher-priority rule left unset,
+     * without ever overriding the axis that rule already claimed.
+     */
+    public function test_lower_priority_rule_fills_in_axis_higher_priority_rule_left_unset(): void {
+        $logoid = $this->create_logo();
+        $this->create_rule([
+            'name' => 'Theme only, high priority',
+            'priority' => 100,
+            'actionjson' => json_encode([['type' => 'theme', 'theme' => 'boost']]),
+        ]);
+        $this->create_rule([
+            'name' => 'Logo only, low priority',
+            'priority' => 10,
+            'actionjson' => json_encode([['type' => 'logo', 'logoid' => $logoid]]),
+        ]);
+
+        $resolved = resolver::resolve(new evaluation_context(123));
+
+        $this->assertSame('boost', $resolved['theme']);
+        $this->assertSame((string) $logoid, $resolved['logo']);
+    }
+
+    /**
+     * A higher-priority rule's own theme still wins even when a lower-priority rule also sets
+     * a theme - the per-axis "first match wins" guarantee must hold, not just "first rule wins".
+     */
+    public function test_higher_priority_rule_theme_is_not_overridden_by_lower_priority_rule(): void {
+        $logoid = $this->create_logo();
+        $this->create_rule([
+            'name' => 'High priority theme',
+            'priority' => 100,
+            'actionjson' => json_encode([['type' => 'theme', 'theme' => 'boost']]),
+        ]);
+        $this->create_rule([
+            'name' => 'Low priority theme + logo',
+            'priority' => 10,
+            'actionjson' => json_encode([
+                ['type' => 'theme', 'theme' => 'classic'],
+                ['type' => 'logo', 'logoid' => $logoid],
+            ]),
+        ]);
+
+        $resolved = resolver::resolve(new evaluation_context(123));
+
+        $this->assertSame('boost', $resolved['theme']);
+        $this->assertSame((string) $logoid, $resolved['logo']);
+    }
+
+    public function test_logo_axis_absent_when_no_rule_sets_it(): void {
+        $this->create_rule(['actionjson' => json_encode([['type' => 'theme', 'theme' => 'boost']])]);
+
+        $resolved = resolver::resolve(new evaluation_context(123));
+
+        $this->assertArrayNotHasKey('logo', $resolved);
+    }
+
+    public function test_invalid_logo_rule_is_skipped_safely(): void {
+        $this->create_rule([
+            'priority' => 100,
+            'actionjson' => json_encode([['type' => 'logo', 'logoid' => 999999]]),
+        ]);
+        $logoid = $this->create_logo();
+        $this->create_rule([
+            'priority' => 50,
+            'actionjson' => json_encode([['type' => 'logo', 'logoid' => $logoid]]),
+        ]);
+
+        $resolved = resolver::resolve(new evaluation_context(123));
+
+        $this->assertSame((string) $logoid, $resolved['logo']);
+        $this->assertDebuggingCalled();
+    }
+
+    /**
+     * A rule created before the `logo` action existed stores actionjson as a single object, not
+     * a list - resolve() must keep accepting that shape forever, not just during a migration
+     * window (a theme-only rule never needs the list form).
+     */
+    public function test_legacy_single_object_actionjson_still_resolves(): void {
+        $this->create_rule([
+            'actionjson' => json_encode(['type' => 'theme', 'theme' => 'boost']),
+        ]);
+
+        $resolved = resolver::resolve(new evaluation_context(123));
+
+        $this->assertSame('boost', $resolved['theme']);
     }
 }

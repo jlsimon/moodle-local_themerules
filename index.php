@@ -26,6 +26,7 @@
 require(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
+use local_themerules\local\repository\logo_repository;
 use local_themerules\local\repository\rule_repository;
 use local_themerules\local\validation\rule_validator;
 
@@ -85,6 +86,13 @@ if (has_capability('local/themerules:simulate', $context)) {
         'get'
     );
 }
+if (has_capability('local/themerules:manage', $context)) {
+    echo $OUTPUT->single_button(
+        new moodle_url('/local/themerules/logos.php'),
+        get_string('logos', 'local_themerules'),
+        'get'
+    );
+}
 
 $rules = $repository->get_all_records_ordered();
 
@@ -100,11 +108,19 @@ $table->head = [
     get_string('form_enabled', 'local_themerules'),
     get_string('form_priority', 'local_themerules'),
     get_string('form_theme', 'local_themerules'),
+    get_string('form_logo', 'local_themerules'),
     get_string('lastmodified', 'local_themerules'),
     get_string('actions', 'local_themerules'),
 ];
 
 $canmanage = has_capability('local/themerules:manage', $context);
+
+// One lookup for every rule's logo name, instead of one query per rule (this page is
+// low-traffic admin-only, but there is no reason to make it N+1 when a single query does).
+$logonames = [];
+foreach ((new logo_repository())->get_all_records_ordered() as $logo) {
+    $logonames[$logo->id] = $logo->name;
+}
 
 foreach ($rules as $rule) {
     $editurl = new moodle_url('/local/themerules/edit.php', ['id' => $rule->id]);
@@ -133,11 +149,14 @@ foreach ($rules as $rule) {
         $actions .= $OUTPUT->action_icon($actionurl('delete'), new pix_icon('t/delete', get_string('delete')));
     }
 
+    $logoid = rule_validator::extract_logoid($rule->actionjson);
+
     $table->data[] = [
         format_string($rule->name),
         $statustext,
         $rule->priority,
         s(rule_validator::extract_theme($rule->actionjson)),
+        $logoid !== null ? s($logonames[$logoid] ?? get_string('trace_notfound', 'local_themerules', $logoid)) : '',
         userdate($rule->timemodified),
         $actions,
     ];

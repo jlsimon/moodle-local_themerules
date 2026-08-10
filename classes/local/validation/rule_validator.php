@@ -24,6 +24,7 @@
 
 namespace local_themerules\local\validation;
 
+use local_themerules\local\action\logo_action;
 use local_themerules\local\action\theme_action;
 use local_themerules\local\engine\expression_parser;
 
@@ -38,7 +39,9 @@ class rule_validator {
      * Validates raw rule submission data.
      *
      * @param array $data Raw form/submission data: name, priority, expressionjson, theme,
-     *                     timestart, timeend.
+     *                     logoid, timestart, timeend. theme and logoid are each individually
+     *                     optional (DECISIONS.md: independent axes), but at least one of the two
+     *                     must be set - a rule with neither would never do anything.
      * @return array<string, string> Element name => error message. Empty if valid.
      */
     public static function validate(array $data): array {
@@ -58,13 +61,26 @@ class rule_validator {
             $errors['expressionjson'] = get_string('error_expression_invalid', 'local_themerules', $e->getMessage());
         }
 
-        if (empty($data['theme'])) {
-            $errors['theme'] = get_string('error_theme_required', 'local_themerules');
-        } else {
+        $hastheme = !empty($data['theme']);
+        $haslogo = !empty($data['logoid']);
+
+        if (!$hastheme && !$haslogo) {
+            $errors['theme'] = get_string('error_action_required', 'local_themerules');
+        }
+
+        if ($hastheme) {
             try {
                 (new theme_action())->validate(['theme' => $data['theme']]);
             } catch (\Throwable $e) {
                 $errors['theme'] = get_string('error_theme_invalid', 'local_themerules', $e->getMessage());
+            }
+        }
+
+        if ($haslogo) {
+            try {
+                (new logo_action())->validate(['logoid' => $data['logoid']]);
+            } catch (\Throwable $e) {
+                $errors['logoid'] = get_string('error_logo_invalid', 'local_themerules', $e->getMessage());
             }
         }
 
@@ -76,18 +92,67 @@ class rule_validator {
     }
 
     /**
-     * Builds the actionjson value from the form's plain "theme" field.
+     * Builds the actionjson value from the form's plain "theme"/"logoid" fields. Always a list
+     * (even when only one axis is set), the canonical shape going forward - see resolver.php's
+     * decode_actions() for why the single-object shape from before the `logo` action existed is
+     * still accepted when reading, just never written by this method anymore.
      */
-    public static function build_action_json(string $theme): string {
-        return json_encode(['type' => 'theme', 'theme' => $theme]);
+    public static function build_action_json(string $theme, ?int $logoid = null): string {
+        $actions = [];
+
+        if ($theme !== '') {
+            $actions[] = ['type' => 'theme', 'theme' => $theme];
+        }
+        if (!empty($logoid)) {
+            $actions[] = ['type' => 'logo', 'logoid' => $logoid];
+        }
+
+        return json_encode($actions);
     }
 
     /**
      * Extracts the plain theme name back out of an actionjson value, for prefilling the form.
+     * Accepts both the legacy single-object shape and the current list shape.
      */
     public static function extract_theme(string $actionjson): string {
-        $action = json_decode($actionjson, true);
+        foreach (self::decode_actions($actionjson) as $action) {
+            if (($action['type'] ?? '') === 'theme') {
+                return (string) ($action['theme'] ?? '');
+            }
+        }
 
-        return is_array($action) ? (string) ($action['theme'] ?? '') : '';
+        return '';
+    }
+
+    /**
+     * Extracts the logo asset id back out of an actionjson value, for prefilling the form.
+     */
+    public static function extract_logoid(string $actionjson): ?int {
+        foreach (self::decode_actions($actionjson) as $action) {
+            if (($action['type'] ?? '') === 'logo') {
+                return (int) ($action['logoid'] ?? 0) ?: null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Decodes a rule's actionjson into a list of action nodes.
+     *
+     * @return array[] Action nodes, tolerating both the legacy single-object shape and the
+     *         current list shape (same tolerance as resolver.php's decode_actions() - kept as a
+     *         separate small copy here rather than shared, since this class only ever reads a
+     *         handful of known keys back out for form prefilling, not the general action dispatch
+     *         resolver.php does).
+     */
+    private static function decode_actions(string $actionjson): array {
+        $decoded = json_decode($actionjson, true);
+
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        return array_key_exists('type', $decoded) ? [$decoded] : $decoded;
     }
 }

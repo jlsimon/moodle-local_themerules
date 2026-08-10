@@ -64,5 +64,39 @@ function xmldb_local_themerules_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026080900, 'local', 'themerules');
     }
 
+    if ($oldversion < 2026081002) {
+        // Logo action support: a rule can now select an uploaded logo asset, independently of
+        // (or instead of) a theme. File bytes live in the File API (component local_themerules,
+        // filearea logo, itemid = this table's id), not in this table - see DECISIONS.md.
+        $table = new xmldb_table('local_themerules_logo');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+        $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null);
+        $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('usermodifiedfk', XMLDB_KEY_FOREIGN, ['usermodified'], 'user', ['id']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2026081002, 'local', 'themerules');
+    }
+
+    if ($oldversion < 2026081003) {
+        // Added one step after the table itself: the CSS-override hook needs the stored file's
+        // actual filename (not just its itemid) to build a working pluginfile URL - see
+        // hook_listener::before_standard_head_html_generation() and DECISIONS.md.
+        $table = new xmldb_table('local_themerules_logo');
+        $field = new xmldb_field('filename', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, 'name');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2026081003, 'local', 'themerules');
+    }
+
     return true;
 }

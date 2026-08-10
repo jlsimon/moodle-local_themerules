@@ -25,7 +25,7 @@
 namespace local_themerules;
 
 use local_themerules\local\engine\fact_provider;
-use local_themerules\local\engine\theme_resolution;
+use local_themerules\local\engine\session_resolution;
 
 /**
  * Tier A integration point (see DECISIONS.md "Phase 2"): listens on
@@ -54,6 +54,52 @@ class hook_listener {
             return;
         }
 
-        theme_resolution::apply(fact_provider::create_for_current_user());
+        session_resolution::apply(fact_provider::create_for_current_user());
+    }
+
+    /**
+     * Injects a CSS override for the navbar logo when a `logo` rule resolved this request
+     * (see DECISIONS.md). Moodle has no per-request logo resolution slot equivalent to
+     * $CFG->theme's $SESSION->theme override (the site logo is a single global core_admin
+     * config value - `renderer_base::get_compact_logo_url()`), so this plugin cannot reuse the
+     * theme mechanism; instead it targets the `<img class="logo">` element every Boost-family
+     * theme's navbar template renders (verified against theme/boost/templates/navbar.mustache)
+     * via CSS `content: url(...)`, which swaps the displayed image without needing a renderer
+     * override for every individual theme.
+     */
+    public static function before_standard_head_html_generation(
+        \core\hook\output\before_standard_head_html_generation $hook
+    ): void {
+        global $DB, $SESSION;
+
+        if (empty($SESSION->themerules_logo)) {
+            return;
+        }
+
+        // Only queried on requests where a logo rule actually resolved (the common case, no
+        // session_resolution logo match, returns above before touching the DB) - see
+        // local_themerules_logo.filename's docblock in db/install.xml for why the filename
+        // itself (not just the id) is needed to build a working pluginfile URL.
+        $logoid = (int) $SESSION->themerules_logo;
+        $filename = $DB->get_field('local_themerules_logo', 'filename', ['id' => $logoid]);
+        if ($filename === false) {
+            // Deleted between session_resolution::apply() and this request's head rendering
+            // (e.g. an admin removed the logo mid-session): nothing to override with.
+            return;
+        }
+
+        $url = \moodle_url::make_pluginfile_url(
+            \context_system::instance()->id,
+            'local_themerules',
+            'logo',
+            $logoid,
+            '/',
+            $filename
+        );
+
+        $hook->add_html(\html_writer::tag(
+            'style',
+            'img.logo { content: url("' . $url->out(false) . '") !important; }'
+        ));
     }
 }
