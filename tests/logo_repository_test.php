@@ -113,4 +113,47 @@ final class logo_repository_test extends \advanced_testcase {
         $this->expectException(\dml_missing_record_exception::class);
         (new logo_repository())->get_record(999999);
     }
+
+    public function test_update_renames_without_touching_file(): void {
+        $repository = new logo_repository();
+        $logoid = $repository->create('Original name', $this->create_draft_file('original.png'));
+
+        // Simulates editing with the filemanager prefilled from the existing file (logos.php's
+        // file_prepare_draft_area() call) and the admin leaving it untouched - same file content
+        // and filename end up back in the draft area under a new draft itemid.
+        $draftitemid = $this->create_draft_file('original.png');
+        $repository->update($logoid, 'Renamed', $draftitemid);
+
+        $record = $repository->get_record($logoid);
+        $this->assertSame('Renamed', $record->name);
+        $this->assertSame('original.png', $record->filename);
+    }
+
+    public function test_update_replaces_the_file(): void {
+        $repository = new logo_repository();
+        $logoid = $repository->create('Logo', $this->create_draft_file('old.png'));
+
+        $draftitemid = file_get_unused_draft_itemid();
+        global $USER;
+        get_file_storage()->create_file_from_string([
+            'contextid' => \context_user::instance($USER->id)->id,
+            'component' => 'user',
+            'filearea' => 'draft',
+            'itemid' => $draftitemid,
+            'filepath' => '/',
+            'filename' => 'new.png',
+        ], 'new image bytes');
+
+        $repository->update($logoid, 'Logo', $draftitemid);
+
+        $record = $repository->get_record($logoid);
+        $this->assertSame('new.png', $record->filename);
+
+        $fs = get_file_storage();
+        $context = \context_system::instance();
+        $this->assertFalse($fs->get_file($context->id, 'local_themerules', 'logo', $logoid, '/', 'old.png'));
+        $newfile = $fs->get_file($context->id, 'local_themerules', 'logo', $logoid, '/', 'new.png');
+        $this->assertNotFalse($newfile);
+        $this->assertSame('new image bytes', $newfile->get_content());
+    }
 }

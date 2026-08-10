@@ -67,6 +67,7 @@ $string['notify_logo_deleted'] = 'Logo eliminado.';
 
 // Biblioteca de logos (logos.php).
 $string['logos'] = 'Logos';
+$string['editlogo'] = 'Editar logo';
 $string['nologos'] = 'Todavía no se ha subido ningún logo.';
 $string['logopreview'] = 'Vista previa';
 $string['form_logoname'] = 'Nombre del logo';

@@ -90,6 +90,28 @@ class logo_repository {
         return $id;
     }
 
+    /**
+     * Updates a logo's name and/or file. The draft area is expected to already contain the
+     * file that should end up stored - either the existing one, untouched, prefilled via
+     * file_prepare_draft_area() (see logos.php), or a new one the admin uploaded to replace it.
+     *
+     * @param string $name Admin-facing label.
+     * @param int $draftitemid See create()'s $draftitemid.
+     */
+    public function update(int $id, string $name, int $draftitemid): void {
+        global $DB, $USER;
+
+        $filename = self::save_draft_file($draftitemid, $id);
+
+        $DB->update_record('local_themerules_logo', (object) [
+            'id' => $id,
+            'name' => $name,
+            'filename' => $filename,
+            'timemodified' => time(),
+            'usermodified' => $USER->id,
+        ]);
+    }
+
     public function delete(int $id): void {
         global $DB;
 

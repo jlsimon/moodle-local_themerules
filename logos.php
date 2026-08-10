@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Logo asset library: upload/list/delete the logos a rule's `logo` action can reference.
+ * Logo asset library: upload/edit/list/delete the logos a rule's `logo` action can reference.
  *
  * @package    local_themerules
  * @copyright  2026 Jose Luis Simon
@@ -69,18 +69,60 @@ if ($action === 'delete' && $id > 0) {
     redirect($url, get_string('notify_logo_deleted', 'local_themerules'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
-$form = new logo_form($url);
+// Editing an existing logo posts back to logos.php?action=edit&id=X (the hidden "id" field in
+// logo_form also carries the id through the POST body, same pattern as rule_form/edit.php), so
+// the form knows whether to create or update on submit. Uploading a new one uses the plain
+// logos.php URL with no id.
+$editing = $action === 'edit' && $id > 0;
+$editinglogo = $editing ? $repository->get_record($id) : null;
+
+$form = new logo_form(new moodle_url($url, $editing ? ['action' => 'edit', 'id' => $id] : []));
+
+if ($form->is_cancelled()) {
+    redirect($url);
+}
 
 if ($data = $form->get_data()) {
-    $repository->create(trim($data->name), $data->logofile);
+    if (!empty($data->id)) {
+        $repository->update((int) $data->id, trim($data->name), $data->logofile);
+    } else {
+        $repository->create(trim($data->name), $data->logofile);
+    }
     redirect($url, get_string('notify_logo_saved', 'local_themerules'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
+if ($editinglogo) {
+    // Calling file_get_submitted_draft_itemid() returns 0 on first load (nothing submitted yet)
+    // and the already-in-progress draft itemid on a failed-validation redisplay, so this only
+    // actually copies the permanent file into a fresh draft area once, not on every redisplay.
+    $draftitemid = file_get_submitted_draft_itemid('logofile');
+    file_prepare_draft_area(
+        $draftitemid,
+        $context->id,
+        'local_themerules',
+        'logo',
+        $editinglogo->id,
+        logo_form::file_options()
+    );
+    $form->set_data((object) [
+        'id' => $editinglogo->id,
+        'name' => $editinglogo->name,
+        'logofile' => $draftitemid,
+    ]);
+}
+
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('logos', 'local_themerules'));
+echo $OUTPUT->heading($editing ? get_string('editlogo', 'local_themerules') : get_string('logos', 'local_themerules'));
 echo $OUTPUT->single_button($indexurl, get_string('pluginname', 'local_themerules'), 'get');
 
 $form->display();
+
+if ($editing) {
+    // Editing is a focused task - showing the full list underneath the form it's already
+    // scrolled past to reach adds noise without helping.
+    echo $OUTPUT->footer();
+    exit;
+}
 
 $logos = $repository->get_all_records_ordered();
 
@@ -108,13 +150,17 @@ foreach ($logos as $logo) {
         $logo->filename
     );
 
+    $editlogourl = new moodle_url($url, ['action' => 'edit', 'id' => $logo->id]);
     $deleteurl = new moodle_url($url, ['action' => 'delete', 'id' => $logo->id, 'sesskey' => sesskey()]);
+
+    $actions = $OUTPUT->action_icon($editlogourl, new pix_icon('t/edit', get_string('edit')));
+    $actions .= $OUTPUT->action_icon($deleteurl, new pix_icon('t/delete', get_string('delete')));
 
     $table->data[] = [
         format_string($logo->name),
         html_writer::empty_tag('img', ['src' => $previewurl, 'alt' => '', 'style' => 'max-height: 2rem; max-width: 8rem;']),
         userdate($logo->timemodified),
-        $OUTPUT->action_icon($deleteurl, new pix_icon('t/delete', get_string('delete'))),
+        $actions,
     ];
 }
 
