@@ -1,34 +1,47 @@
 # local_themerules
 
+*[Leer en español](README_es.md)*
+
+Give every learner the right look, automatically — a different theme and
+logo per client company, a distraction-free skin during exams, a lighter
+theme on phones — all from admin-configured rules. No code, no per-course
+setup.
+
+**📖 See it in action:** a full walkthrough with real screenshots, in
+[English](https://jlsimon.github.io/moodle-local_themerules/user_guide.html)
+or [español](https://jlsimon.github.io/moodle-local_themerules/user_guide.es.html)
+(also in this repo: [`docs/user_guide.md`](docs/user_guide.md) /
+[`user_guide.es.md`](docs/user_guide.es.md)).
+
+## What it does
+
 A Moodle local plugin that dynamically selects the theme and/or navbar logo
-shown to a user according to configurable logical rules (`condition
-expression -> theme and/or logo`), evaluated server-side before Moodle
-renders the page.
+shown to a user, based on rules evaluated server-side before Moodle renders
+the page — who they are, what course/category they're in, a cohort or
+group, a course tag, a profile field, or their device type. Three real
+examples, walked through in the user guide above:
 
-## Purpose
+- **Multi-tenant branding.** Two client companies sharing one Moodle
+  instance, each seeing their own theme and logo wherever they go on the
+  site — driven by cohort membership.
+- **Exam mode.** Any course tagged `exam-mode` automatically switches to a
+  plain, distraction-free theme — no per-course setup, just tag and untag
+  as needed.
+- **Device-adaptive themes.** A lighter, mobile-first theme for phones, the
+  usual one everywhere else.
 
-Administrators can define rules such as:
-
-```
-(course category = "FUNDAE")
-AND
-(
-    user belongs to cohort "Company A"
-    OR
-    user belongs to cohort "Company B"
-)
--> theme_cigales
-```
-
-through an admin UI, without writing code. If no rule matches, Moodle's
-normal theme selection applies exactly as if the plugin were not
+Rules are managed from one admin screen through a visual condition
+builder — no JSON to hand-write, though the underlying expression is still
+plain JSON (documented below) for anyone who wants it. If no rule matches,
+Moodle's normal theme selection applies exactly as if the plugin were not
 installed.
 
-See `SPECIFICATIONS.md` for the full functional specification this plugin
-was built against, and `DECISIONS.md` for the technical decisions made
-while building it (in particular, why the theme is applied via
-`$SESSION->theme` rather than `$PAGE->force_theme()`, and why a two-tier
-hook/callback architecture is needed for course-based conditions).
+See `SPECIFICATIONS_local_themerules.md` for the full functional
+specification this plugin was built against, and `DECISIONS.md` for the
+technical decisions made while building it (in particular, why the theme
+is applied via `$SESSION->theme` rather than `$PAGE->force_theme()`, and
+why a two-tier hook/callback architecture is needed for course-based
+conditions).
 
 ## Requirements
 
@@ -212,45 +225,13 @@ A rule only setting a logo (leaving whatever theme an earlier rule already
 chose untouched) uses a single-element action list:
 `[{"type": "logo", "logoid": 3}]`.
 
-Course + cohort combination:
+Combining conditions with AND/OR groups is where the visual builder earns
+its keep - nobody wants to hand-indent nested JSON to express "category X
+(including subcategories) AND (cohort A OR cohort B)". Click **Add
+group**, pick its own AND/OR, and nest as deep as the scenario needs (up
+to 10 levels):
 
-```json
-{
-  "type": "group",
-  "operator": "and",
-  "children": [
-    {"type": "condition", "condition": "course", "operator": "is", "value": 5},
-    {"type": "condition", "condition": "cohort", "operator": "member", "value": 7}
-  ]
-}
-```
-
-The plugin's canonical example - a category (including its subcategories)
-combined with an OR of two cohorts:
-
-```json
-{
-  "type": "group",
-  "operator": "and",
-  "children": [
-    {
-      "type": "condition",
-      "condition": "coursecategory",
-      "operator": "in_category",
-      "value": 12,
-      "includechildren": true
-    },
-    {
-      "type": "group",
-      "operator": "or",
-      "children": [
-        {"type": "condition", "condition": "cohort", "operator": "member", "value": 7},
-        {"type": "condition", "condition": "cohort", "operator": "member", "value": 8}
-      ]
-    }
-  ]
-}
-```
+![Nested condition builder: course category "Corporate Academies" AND (cohort "Nimbus Robotics Staff" OR cohort "Solaris Retail Staff")](docs/images/readme/nested-group.png)
 
 ## Troubleshooting
 
