@@ -96,6 +96,24 @@ $string['form_save'] = 'Guardar regla';
 $string['form_theme'] = 'Aplicar tema';
 $string['form_timeend'] = 'Válida hasta';
 $string['form_timestart'] = 'Válida desde';
+$string['help_actions_body'] = 'Una regla aplica un tema, un logo, o ambos, a quien cumpla su condición - se requiere al menos uno de los dos.';
+$string['help_actions_heading'] = 'Acciones';
+$string['help_cond_cohort_desc'] = 'Si el usuario es (o no es) miembro de una cohorte concreta.';
+$string['help_cond_course_desc'] = 'Si el curso actual es uno concreto.';
+$string['help_cond_coursecategory_desc'] = 'Si el curso actual está en una categoría concreta, incluyendo opcionalmente sus subcategorías.';
+$string['help_cond_coursegroup_desc'] = 'Si el usuario es (o no es) miembro de un grupo concreto del curso actual.';
+$string['help_cond_coursetag_desc'] = 'Si el curso actual tiene (o no tiene) una etiqueta concreta.';
+$string['help_cond_device_desc'] = 'Si el navegador se detecta como escritorio, móvil, tablet o navegador antiguo.';
+$string['help_cond_profilefield_desc'] = 'Si un campo de perfil estándar o personalizado coincide con un valor concreto.';
+$string['help_cond_user_desc'] = 'Si el usuario con sesión iniciada es uno concreto.';
+$string['help_conditions_heading'] = 'Tipos de condición';
+$string['help_evaluation_body'] = 'Las reglas se comprueban de arriba a abajo en la lista; la primera regla activada cuya condición coincide aplica su tema y/o logo. Reordénalas con las flechas subir/bajar del listado - no existe un número de prioridad aparte. Si ninguna coincide, se aplica la selección de tema normal de Moodle, igual que si el plugin no estuviera instalado.';
+$string['help_evaluation_heading'] = 'Cómo se evalúan las reglas';
+$string['help_fullguide'] = 'Para un recorrido completo con capturas reales, consulta la <a href="{$a}" target="_blank" rel="noopener">guía de uso ilustrada</a>.';
+$string['help_intro'] = 'Una regla combina una condición (quién es el usuario, en qué curso/categoría/grupo está, una etiqueta de curso, un campo de perfil, o su tipo de dispositivo) con una acción (un tema, un logo, o ambos). Esta página es una referencia rápida de las piezas disponibles en el editor de reglas.';
+$string['help_tools_heading'] = 'Otras herramientas';
+$string['help_tools_importexport_desc'] = 'Exportar descarga el conjunto de reglas como un archivo JSON; Importar lo vuelve a cargar, siempre desactivado por defecto para que nada cambie en el tráfico real sin revisión previa - útil para mover un conjunto de reglas entre sitios.';
+$string['help_tools_simulator_desc'] = 'Comprueba qué combinación de usuario, curso y dispositivo resolvería, sin necesidad de iniciar sesión como esa persona.';
 $string['import'] = 'Importar';
 $string['import_error_format'] = 'Este archivo no es una exportación válida de reglas de tema (se esperaba {"format": 1, "rules": [...]}).';
 $string['import_error_named'] = 'Regla "{$a->name}": {$a->message}';
@@ -121,6 +139,7 @@ $string['privacy:metadata'] = 'El plugin Reglas de tema almacena la configuraci�
     administrador que la creó o modificó por última vez. Ese id es un registro de auditoría de
     una acción de configuración administrativa, no datos personales sobre ese administrador
     procesados por este plugin, por lo que no se implementa exportación/eliminación para él.';
+$string['quickreference'] = 'Referencia rápida';
 $string['simulate'] = 'Simular';
 $string['simulator'] = 'Simular';
 $string['simulator_devicetype'] = 'Tipo de dispositivo';

@@ -116,6 +116,7 @@ if (has_capability('local/themerules:manage', $context)) {
     );
 }
 echo $OUTPUT->single_button(new moodle_url($url, ['action' => 'export']), get_string('export', 'local_themerules'), 'get');
+echo $OUTPUT->single_button(new moodle_url('/local/themerules/help.php'), get_string('quickreference', 'local_themerules'), 'get');
 
 $rules = $repository->get_all_records_ordered();
 
@@ -197,7 +198,7 @@ foreach ($orderedrules as $index => $rule) {
         $statustext,
         s(rule_validator::extract_theme($rule->actionjson)),
         $logoid !== null ? s($logonames[$logoid] ?? get_string('trace_notfound', 'local_themerules', $logoid)) : '',
-        userdate($rule->timemodified),
+        userdate($rule->timemodified, get_string('strftimedatetimeshort', 'langconfig')),
         $actions,
     ];
 }

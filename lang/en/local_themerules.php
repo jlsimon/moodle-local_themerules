@@ -96,6 +96,24 @@ $string['form_save'] = 'Save rule';
 $string['form_theme'] = 'Apply theme';
 $string['form_timeend'] = 'Valid until';
 $string['form_timestart'] = 'Valid from';
+$string['help_actions_body'] = 'A rule applies a theme, a logo, or both, to anyone matching its condition - at least one of the two is required.';
+$string['help_actions_heading'] = 'Actions';
+$string['help_cond_cohort_desc'] = 'Whether the user is (or is not) a member of a given cohort.';
+$string['help_cond_course_desc'] = 'Whether the current course is a specific one.';
+$string['help_cond_coursecategory_desc'] = 'Whether the current course sits in a given category, optionally including its subcategories.';
+$string['help_cond_coursegroup_desc'] = 'Whether the user is (or is not) a member of a given group in the current course.';
+$string['help_cond_coursetag_desc'] = 'Whether the current course carries (or does not carry) a given tag.';
+$string['help_cond_device_desc'] = 'Whether the browser is detected as desktop, mobile, tablet, or a legacy browser.';
+$string['help_cond_profilefield_desc'] = 'Whether a standard or custom user profile field matches a given value.';
+$string['help_cond_user_desc'] = 'Whether the logged-in user is a specific one.';
+$string['help_conditions_heading'] = 'Condition types';
+$string['help_evaluation_body'] = 'Rules are checked from top to bottom in the list; the first enabled rule whose condition matches applies its theme and/or logo. Reorder rules with the up/down arrows on the rule list - there is no separate priority number. If no rule matches, Moodle\'s normal theme selection applies exactly as if the plugin were not installed.';
+$string['help_evaluation_heading'] = 'How rules are evaluated';
+$string['help_fullguide'] = 'For a full walkthrough with real screenshots, see the <a href="{$a}" target="_blank" rel="noopener">illustrated user guide</a>.';
+$string['help_intro'] = 'A rule pairs a condition (who the user is, what course/category/group they\'re in, a course tag, a profile field, or their device type) with an action (a theme, a logo, or both). This page is a quick reference to the pieces available in the rule editor.';
+$string['help_tools_heading'] = 'Other tools';
+$string['help_tools_importexport_desc'] = 'Export downloads the full rule set as a JSON file; Import loads one back in, always disabled by default so nothing changes on real traffic without a review first - useful for moving a rule set between sites.';
+$string['help_tools_simulator_desc'] = 'Check what a given user, course and device combination would resolve to, without needing to log in as that user.';
 $string['import'] = 'Import';
 $string['import_error_format'] = 'This file is not a valid theme rules export (expected {"format": 1, "rules": [...]}).';
 $string['import_error_named'] = 'Rule "{$a->name}": {$a->message}';
@@ -121,6 +139,7 @@ $string['privacy:metadata'] = 'The Theme rules plugin stores rule configuration 
     created or modified it. That id is an audit trail of an administrative configuration action,
     not personal data about that administrator collected or processed by this plugin, so no
     export/deletion is implemented for it.';
+$string['quickreference'] = 'Quick reference';
 $string['simulate'] = 'Simulate';
 $string['simulator'] = 'Simulate';
 $string['simulator_devicetype'] = 'Device type';

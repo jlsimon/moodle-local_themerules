@@ -159,7 +159,7 @@ foreach ($logos as $logo) {
     $table->data[] = [
         format_string($logo->name),
         html_writer::empty_tag('img', ['src' => $previewurl, 'alt' => '', 'style' => 'max-height: 2rem; max-width: 8rem;']),
-        userdate($logo->timemodified),
+        userdate($logo->timemodified, get_string('strftimedatetimeshort', 'langconfig')),
         $actions,
     ];
 }
