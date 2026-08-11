@@ -40,13 +40,6 @@ quien lo quiera. Si ninguna regla coincide, se aplica la selección de tema
 normal de Moodle exactamente igual que si el plugin no estuviera
 instalado.
 
-Consulta `SPECIFICATIONS_local_themerules.md` para la especificación
-funcional completa con la que se construyó este plugin, y `DECISIONS.md`
-para las decisiones técnicas tomadas durante su construcción (en
-particular, por qué el tema se aplica vía `$SESSION->theme` en lugar de
-`$PAGE->force_theme()`, y por qué hace falta una arquitectura de
-hooks/callbacks en dos niveles para las condiciones basadas en curso).
-
 ## Requisitos
 
 - Moodle 4.5 LTS o posterior (desarrollado y probado contra 5.2.1+).
@@ -153,7 +146,7 @@ Solución de problemas más abajo).
 | Tipo | Valor | Notas |
 |---|---|---|
 | `theme` | El nombre de directorio de un tema, p. ej. `"boost"`. | Se omite de forma segura (pasando a la siguiente regla que coincida) si el tema ha sido desinstalado. |
-| `logo` | Un id de logo de la biblioteca de logos (`logoid`). | Se omite de forma segura si el logo ha sido eliminado. Se aplica mediante una pequeña sobrescritura CSS inyectada en el `<head>` de cada página, no cambiando ningún ajuste global de Moodle - ver DECISIONS.md para el porqué (el logo del sitio no tiene ningún mecanismo de resolución por petición al que engancharse, a diferencia del tema). |
+| `logo` | Un id de logo de la biblioteca de logos (`logoid`). | Se omite de forma segura si el logo ha sido eliminado. Se aplica mediante una pequeña sobrescritura CSS inyectada en el `<head>` de cada página, no cambiando ningún ajuste global de Moodle (el logo del sitio no tiene ningún mecanismo de resolución por petición al que engancharse, a diferencia del tema). |
 
 ### Identificadores de condición
 
@@ -264,8 +257,7 @@ anida tan profundo como necesite el escenario (hasta 10 niveles):
   página de un curso.** Es lo esperado fuera de un contexto de curso real
   (portada del sitio, área personal, páginas de administración): esos
   hechos solo se resuelven una vez que Moodle sabe cuál es el curso real
-  que se está viendo. Ver "Phase 2" en DECISIONS.md para la restricción del
-  ciclo de vida de Moodle subyacente.
+  que se está viendo.
 - **Cambié una regla pero se sigue mostrando el tema antiguo.** La lista de
   reglas activadas está en caché (MUC, área `rules`). El plugin la invalida
   automáticamente en cada guardado/activación/desactivación/
@@ -317,7 +309,3 @@ node_modules/.bin/grunt amd --root=local/themerules
 # Estándar de codificación
 vendor/bin/phpcs --standard=moodle local/themerules
 ```
-
-Consulta `DECISIONS.md` para ver qué se ha ejecutado y verificado
-realmente en cada fase de desarrollo, incluyendo verificación en vivo (no
-solo PHPUnit) contra una instancia real de Moodle en cada fase.

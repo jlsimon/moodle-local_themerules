@@ -27,6 +27,3 @@ all from admin-configured rules, no code and no per-course setup.
 - **Engineering.** Caching-aware resolution, Moodle event logging, a privacy
   API provider, PHPUnit and Behat coverage, and a GitHub Actions
   `moodle-plugin-ci` workflow (PHP 8.1–8.4, Moodle 4.5–5.2, Postgres/MariaDB).
-
-See `DECISIONS.md` for the full build history and the reasoning behind each
-technical decision.

@@ -36,13 +36,6 @@ plain JSON (documented below) for anyone who wants it. If no rule matches,
 Moodle's normal theme selection applies exactly as if the plugin were not
 installed.
 
-See `SPECIFICATIONS_local_themerules.md` for the full functional
-specification this plugin was built against, and `DECISIONS.md` for the
-technical decisions made while building it (in particular, why the theme
-is applied via `$SESSION->theme` rather than `$PAGE->force_theme()`, and
-why a two-tier hook/callback architecture is needed for course-based
-conditions).
-
 ## Requirements
 
 - Moodle 4.5 LTS or later (developed and tested against 5.2.1+).
@@ -139,7 +132,7 @@ any other rule pointing at a deleted entity (see Troubleshooting below).
 | Type | Value | Notes |
 |---|---|---|
 | `theme` | A theme's directory name, e.g. `"boost"`. | Skipped safely (falls through to the next matching rule) if the theme has since been uninstalled. |
-| `logo` | A logo asset id from the logo library (`logoid`). | Skipped safely if the logo has since been deleted. Applied via a small CSS override injected into every page's `<head>`, not by changing any Moodle-wide setting - see DECISIONS.md for why (the site logo has no per-request resolution mechanism to hook into, unlike the theme). |
+| `logo` | A logo asset id from the logo library (`logoid`). | Skipped safely if the logo has since been deleted. Applied via a small CSS override injected into every page's `<head>`, not by changing any Moodle-wide setting (the site logo has no per-request resolution mechanism to hook into, unlike the theme). |
 
 ### Condition identifiers
 
@@ -245,8 +238,7 @@ to 10 levels):
 - **A `course`/`coursecategory` condition never matches anywhere except on
   a course page.** This is expected outside a real course context (site
   front page, dashboard, admin pages): those facts are only resolved once
-  Moodle knows the real course being viewed. See DECISIONS.md "Phase 2"
-  for the underlying Moodle lifecycle constraint.
+  Moodle knows the real course being viewed.
 - **I changed a rule but the old theme is still showing.** The enabled-rule
   list is cached (MUC, area `rules`). The plugin invalidates it
   automatically on every save/enable/disable/reorder/delete through the admin UI;
@@ -292,7 +284,3 @@ node_modules/.bin/grunt amd --root=local/themerules
 # Coding standard
 vendor/bin/phpcs --standard=moodle local/themerules
 ```
-
-See `DECISIONS.md` for what has actually been run and verified at each
-development phase, including live (non-PHPUnit) verification against a
-real Moodle instance for every phase.
