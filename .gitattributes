@@ -1,0 +1,7 @@
+# Kept in the git repo (needed by GitHub Pages and the README), but not
+# essential to installing/running the plugin - excluded from `git archive`
+# output, i.e. the install zip attached to releases and GitHub's own
+# "Download ZIP" / auto-generated source archives.
+docs/images/ export-ignore
+docs/user_guide.html export-ignore
+docs/user_guide.es.html export-ignore
